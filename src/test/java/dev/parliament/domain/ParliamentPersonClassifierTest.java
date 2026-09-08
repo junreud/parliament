@@ -31,8 +31,15 @@ class ParliamentPersonClassifierTest {
         PersonCandidate witness = classifier.classify("이증인", null, "참고인", "민간연구소", false);
 
         assertThat(witness.kind()).isEqualTo(PersonKind.OTHER);
-        assertThat(witness.identityKey()).startsWith("provisional-name:");
+        assertThat(witness.identityKey()).startsWith("provisional-person:");
         assertThat(witness.resolutionStatus()).isEqualTo(PersonResolutionStatus.PROVISIONAL_NAME_MATCH);
     }
-}
 
+    @Test
+    void sameNameWithDifferentContextDoesNotShareProvisionalIdentity() {
+        PersonCandidate witness = classifier.classify("김민수", null, "참고인", "민간연구소", false);
+        PersonCandidate official = classifier.classify("김민수", null, "과장", "기획재정부", false);
+
+        assertThat(witness.identityKey()).isNotEqualTo(official.identityKey());
+    }
+}

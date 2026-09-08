@@ -7,6 +7,7 @@ import dev.parliament.config.ParliamentSourceCatalog;
 import dev.parliament.config.ParliamentSourceDefinition;
 import dev.parliament.domain.NormalizedParliamentRecord;
 import dev.parliament.domain.ParliamentRecordNormalizer;
+import dev.parliament.persistence.ParliamentIngestionCheckpoint;
 import dev.parliament.persistence.ParliamentStagingRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -54,9 +55,11 @@ public class ParliamentIngestionService {
             return Mono.error(new IllegalArgumentException("confirmWrite must be true"));
         }
         return Flux.fromIterable(resolveSources(request))
-                .concatMap(source -> repository.nextPage(source.key())
-                        .defaultIfEmpty(1)
-                        .flatMap(page -> ingestPage(source, page, request, 0))
+                .concatMap(source -> repository.checkpoint(source.key())
+                        .defaultIfEmpty(ParliamentIngestionCheckpoint.initial())
+                        .flatMap(checkpoint -> checkpoint.complete()
+                                ? Mono.just(alreadyComplete(source))
+                                : ingestPage(source, checkpoint.nextPage(), request, 0))
                         .onErrorResume(error -> Mono.just(failed(source, error))))
                 .collectList()
                 .map(reports -> new ParliamentIngestionReport(true, reports));
@@ -122,6 +125,11 @@ public class ParliamentIngestionService {
 
     private ParliamentSourceReport failed(ParliamentSourceDefinition source, Throwable error) {
         return ParliamentSourceReport.failed(source.key(), source.apiCode(), error);
+    }
+
+    private ParliamentSourceReport alreadyComplete(ParliamentSourceDefinition source) {
+        return new ParliamentSourceReport(source.key(), source.apiCode(), 0, 0, 0,
+                true, ParliamentSourceStatus.COMPLETE, "already complete");
     }
 
     private int peopleCount(List<NormalizedParliamentRecord> records) {

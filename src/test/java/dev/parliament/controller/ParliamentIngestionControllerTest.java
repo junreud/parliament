@@ -58,5 +58,27 @@ class ParliamentIngestionControllerTest {
                         && response.getStatusCode().equals(HttpStatus.BAD_REQUEST))
                 .verify();
     }
-}
 
+    @Test
+    void mapsSynchronousValidationErrorsToBadRequest() {
+        when(service.preflight(request)).thenThrow(new IllegalArgumentException("invalid request"));
+
+        StepVerifier.create(controller.preflight("admin-key", request))
+                .expectErrorMatches(error -> error instanceof ResponseStatusException response
+                        && response.getStatusCode().equals(HttpStatus.BAD_REQUEST))
+                .verify();
+    }
+
+    @Test
+    void rejectsConcurrentIngestionRuns() {
+        when(service.run(request)).thenReturn(Mono.never());
+        var firstRun = controller.run("admin-key", request).subscribe();
+
+        StepVerifier.create(controller.run("admin-key", request))
+                .expectErrorMatches(error -> error instanceof ResponseStatusException response
+                        && response.getStatusCode().equals(HttpStatus.CONFLICT))
+                .verify();
+
+        firstRun.dispose();
+    }
+}

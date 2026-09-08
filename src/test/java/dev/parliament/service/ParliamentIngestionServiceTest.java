@@ -9,6 +9,7 @@ import dev.parliament.config.ParliamentSourceCatalog;
 import dev.parliament.config.ParliamentSourceDefinition;
 import dev.parliament.domain.NormalizedParliamentRecord;
 import dev.parliament.domain.ParliamentRecordNormalizer;
+import dev.parliament.persistence.ParliamentIngestionCheckpoint;
 import dev.parliament.persistence.ParliamentStagingRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -61,8 +63,8 @@ class ParliamentIngestionServiceTest {
                         && report.writePerformed() == false)
                 .verifyComplete();
 
-        verify(repository, never()).savePage(any(), any(), anyInt(), anyInt(), any());
-        verify(repository, never()).nextPage(any());
+        verify(repository, never()).savePage(any(), any(), anyInt(), anyInt(), anyBoolean());
+        verify(repository, never()).checkpoint(any());
     }
 
     @Test
@@ -82,7 +84,7 @@ class ParliamentIngestionServiceTest {
                 .verify();
 
         verify(apiClient, never()).fetch(any(), anyInt(), anyInt());
-        verify(repository, never()).savePage(any(), any(), anyInt(), anyInt(), any());
+        verify(repository, never()).savePage(any(), any(), anyInt(), anyInt(), anyBoolean());
     }
 
     @Test
@@ -101,7 +103,7 @@ class ParliamentIngestionServiceTest {
                     });
                 })
                 .verifyComplete();
-        verify(repository, never()).savePage(any(), any(), anyInt(), anyInt(), any());
+        verify(repository, never()).savePage(any(), any(), anyInt(), anyInt(), anyBoolean());
     }
 
     @Test
@@ -111,7 +113,8 @@ class ParliamentIngestionServiceTest {
         NormalizedParliamentRecord normalized = new NormalizedParliamentRecord(
                 "m1", "hash", "{}", List.of());
         properties.setWriteEnabled(true);
-        when(repository.nextPage(source.key())).thenReturn(Mono.just(1));
+        when(repository.checkpoint(source.key())).thenReturn(Mono.just(
+                new ParliamentIngestionCheckpoint(1, false)));
         when(apiClient.fetch(source, 1, 1)).thenReturn(Mono.just(new OpenAssemblyPage(10, List.of(row))));
         when(normalizer.normalize(source, row)).thenReturn(normalized);
         when(repository.savePage(source, List.of(normalized), 1, 2, false)).thenReturn(Mono.empty());
@@ -128,6 +131,23 @@ class ParliamentIngestionServiceTest {
                 .verifyComplete();
 
         verify(repository).savePage(source, List.of(normalized), 1, 2, false);
+    }
+
+    @Test
+    void completedCheckpointSkipsExternalApiAndDatabaseWrites() {
+        ParliamentSourceCatalog catalog = ParliamentSourceCatalog.of(List.of(source));
+        properties.setWriteEnabled(true);
+        when(repository.checkpoint(source.key())).thenReturn(Mono.just(
+                new ParliamentIngestionCheckpoint(5, true)));
+
+        StepVerifier.create(service(catalog).run(
+                        new ParliamentIngestionRequest(List.of(source.key()), 10, 1, true)))
+                .assertNext(report -> assertThat(report.sources()).singleElement()
+                        .satisfies(done -> assertThat(done.status()).isEqualTo(ParliamentSourceStatus.COMPLETE)))
+                .verifyComplete();
+
+        verify(apiClient, never()).fetch(any(), anyInt(), anyInt());
+        verify(repository, never()).savePage(any(), any(), anyInt(), anyInt(), anyBoolean());
     }
 
     private ParliamentIngestionService service(ParliamentSourceCatalog catalog) {

@@ -16,6 +16,7 @@ import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @RestController
 @RequestMapping("/admin/ingestion/parliament")
@@ -25,6 +26,7 @@ public class ParliamentIngestionController {
 
     private final ParliamentIngestionService service;
     private final byte[] expectedAdminKey;
+    private final AtomicBoolean ingestionRunning = new AtomicBoolean();
 
     public ParliamentIngestionController(
             ParliamentIngestionService service,
@@ -44,7 +46,7 @@ public class ParliamentIngestionController {
             @RequestBody ParliamentIngestionRequest request
     ) {
         authorize(adminKey);
-        return mapClientErrors(service.preflight(request));
+        return mapClientErrors(Mono.defer(() -> service.preflight(request)));
     }
 
     @PostMapping("/run")
@@ -53,7 +55,14 @@ public class ParliamentIngestionController {
             @RequestBody ParliamentIngestionRequest request
     ) {
         authorize(adminKey);
-        return mapClientErrors(service.run(request));
+        return Mono.defer(() -> {
+            if (!ingestionRunning.compareAndSet(false, true)) {
+                return Mono.error(new ResponseStatusException(
+                        HttpStatus.CONFLICT, "parliament ingestion is already running"));
+            }
+            return mapClientErrors(Mono.defer(() -> service.run(request)))
+                    .doFinally(signal -> ingestionRunning.set(false));
+        });
     }
 
     private void authorize(String supplied) {

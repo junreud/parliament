@@ -80,11 +80,14 @@ public class ParliamentRecordNormalizer {
                 people.add(classifier.classify(name, sourcePersonId, position, organization, memberSource));
             }
         }
-        return people.stream()
+        List<PersonCandidate> uniquePeople = people.stream()
                 .filter(Objects::nonNull)
                 .distinct()
-                .map(person -> person.withSocialAccounts(socialAccounts))
                 .toList();
+        if (uniquePeople.size() == 1) {
+            return List.of(uniquePeople.get(0).withSocialAccounts(socialAccounts));
+        }
+        return uniquePeople;
     }
 
     private String firstValue(Map<String, Object> row, List<String> fields) {

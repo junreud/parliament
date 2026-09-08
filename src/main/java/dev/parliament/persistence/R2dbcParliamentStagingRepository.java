@@ -25,14 +25,16 @@ public class R2dbcParliamentStagingRepository implements ParliamentStagingReposi
     }
 
     @Override
-    public Mono<Integer> nextPage(String sourceKey) {
+    public Mono<ParliamentIngestionCheckpoint> checkpoint(String sourceKey) {
         return databaseClient.sql("""
-                        SELECT next_page
+                        SELECT next_page, complete
                         FROM parliament_ingestion_checkpoint
-                        WHERE source_key = :sourceKey AND complete = false
+                        WHERE source_key = :sourceKey
                         """)
                 .bind("sourceKey", sourceKey)
-                .map((row, metadata) -> row.get("next_page", Integer.class))
+                .map((row, metadata) -> new ParliamentIngestionCheckpoint(
+                        row.get("next_page", Integer.class),
+                        Boolean.TRUE.equals(row.get("complete", Boolean.class))))
                 .one();
     }
 
@@ -42,11 +44,11 @@ public class R2dbcParliamentStagingRepository implements ParliamentStagingReposi
             List<NormalizedParliamentRecord> records,
             int currentPage,
             int nextPage,
-            Boolean complete
+            boolean complete
     ) {
         Mono<Void> work = Flux.fromIterable(records)
                 .concatMap(record -> saveRecord(source, record))
-                .then(saveCheckpoint(source.key(), currentPage, nextPage, Boolean.TRUE.equals(complete)))
+                .then(saveCheckpoint(source.key(), currentPage, nextPage, complete))
                 .then();
         return transaction.transactional(work);
     }
@@ -151,6 +153,18 @@ public class R2dbcParliamentStagingRepository implements ParliamentStagingReposi
     }
 
     private Mono<Void> saveSocial(String identityKey, SocialAccount account) {
+        String urlHash = TextUtil.textSha1(account.url());
+        Mono<Void> clearPreviousPrimary = databaseClient.sql("""
+                        UPDATE parliament_social_account
+                        SET is_primary = false
+                        WHERE identity_key = :identityKey
+                          AND platform = :platform
+                          AND url_hash <> :urlHash
+                        """)
+                .bind("identityKey", identityKey)
+                .bind("platform", account.platform().name())
+                .bind("urlHash", urlHash)
+                .fetch().rowsUpdated().then();
         DatabaseClient.GenericExecuteSpec spec = databaseClient.sql("""
                         INSERT INTO parliament_social_account
                           (identity_key, platform, url_hash, canonical_url, handle, is_primary, verification_status)
@@ -163,12 +177,12 @@ public class R2dbcParliamentStagingRepository implements ParliamentStagingReposi
                         """)
                 .bind("identityKey", identityKey)
                 .bind("platform", account.platform().name())
-                .bind("urlHash", TextUtil.textSha1(account.url()))
+                .bind("urlHash", urlHash)
                 .bind("url", account.url())
                 .bind("isPrimary", account.primary())
                 .bind("verificationStatus", account.verificationStatus().name());
         spec = bindNullable(spec, "handle", account.handle(), String.class);
-        return spec.fetch().rowsUpdated().then();
+        return clearPreviousPrimary.then(spec.fetch().rowsUpdated()).then();
     }
 
     private Mono<Long> saveCheckpoint(String sourceKey, int currentPage, int nextPage, boolean complete) {

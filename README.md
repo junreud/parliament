@@ -9,7 +9,7 @@
 - 영상 관련 3개 API는 `VIDEO / EXCLUDED`로 고정해 호출과 적재에서 제외합니다.
 - 모든 응답 행의 원문 JSON과 해시를 보존하고, 체크포인트로 중단 지점부터 재개합니다.
 - 구조화된 인물 필드에서 국회의원, 정부 공직자, 기타 인물 후보를 분류합니다.
-- 국회가 제공한 SNS 필드를 X, YouTube, 네이버 블로그, Facebook, Instagram의 정규 URL로 매핑합니다.
+- 국회가 제공한 SNS 필드를 X, YouTube, 네이버 블로그, Facebook, Instagram, Threads, TikTok, Telegram의 정규 URL로 매핑합니다.
 - 외부 키가 확인된 국회의원만 확정 식별자로 병합합니다. 이름만 있는 사람은 자동 병합하지 않고 `PROVISIONAL_NAME_MATCH`로 둡니다.
 
 ### 인물 분류 원칙
@@ -17,8 +17,8 @@
 | 종류 | 판단 근거 | 식별 방식 |
 |---|---|---|
 | `LEGISLATOR` | 국회의원 데이터 소스이며 의원 외부 ID가 있음 | `assembly-member:{외부 ID}` |
-| `PUBLIC_OFFICIAL` | 국무총리·장관·차관·청장 등 공직 직함이 명시됨 | 임시 이름 키 + 직위 이력 |
-| `OTHER` | 증인·참고인·전문가 등 위 두 근거가 없음 | 임시 이름 키, 추후 검수 |
+| `PUBLIC_OFFICIAL` | 국무총리·장관·차관·청장 등 공직 직함이 명시됨 | 이름·직위·소속 기반 후보 키 + 직위 이력 |
+| `OTHER` | 증인·참고인·전문가 등 위 두 근거가 없음 | 이름·직위·소속 기반 후보 키, 추후 검수 |
 
 이름만 같은 사람을 동일 인물로 확정하지 않습니다. 자유문 본문에만 등장하는 인물의 NER(개체명 인식)와 영상 분석은 이번 단계의 범위가 아닙니다. 자유문 원문은 `parliament_source_record.raw_payload`에 남으므로 후속 분석기를 안전하게 붙일 수 있습니다.
 
@@ -81,7 +81,7 @@ curl -X POST http://localhost:8080/admin/ingestion/parliament/preflight \
 ./gradlew test
 ```
 
-단위 테스트는 영상 제외, 인물 분류, SNS URL 허용목록, API 애플리케이션 오류 처리, dry-run 무쓰기, 이중 쓰기 잠금, DB 스키마 계약을 확인합니다.
+테스트는 영상 제외, 인물 분류, SNS URL 허용목록, API 애플리케이션 오류 처리, dry-run 무쓰기, 이중 쓰기 잠금, 실제 MySQL 스키마·트랜잭션·체크포인트를 확인합니다. Docker 엔진이 실행 중이어야 합니다.
 
 ## 데이터 출처와 갱신
 

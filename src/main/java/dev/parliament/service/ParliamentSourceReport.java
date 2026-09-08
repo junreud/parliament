@@ -1,5 +1,7 @@
 package dev.parliament.service;
 
+import dev.parliament.api.OpenAssemblyApiException;
+
 public record ParliamentSourceReport(
         String sourceKey,
         String apiCode,
@@ -11,7 +13,7 @@ public record ParliamentSourceReport(
         String message
 ) {
     public static ParliamentSourceReport failed(String sourceKey, String apiCode, Throwable error) {
-        String message = error instanceof dev.parliament.api.OpenAssemblyApiException
+        String message = error instanceof OpenAssemblyApiException
                 ? error.getMessage()
                 : "source request failed: " + error.getClass().getSimpleName();
         return new ParliamentSourceReport(sourceKey, apiCode, 0, 0, 0,

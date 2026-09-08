@@ -1,8 +1,10 @@
 package dev.parliament.domain;
 
+import dev.parliament.util.TextUtil;
+
 import java.text.Normalizer;
-import java.util.Locale;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 public class ParliamentPersonClassifier {
@@ -29,7 +31,8 @@ public class ParliamentPersonClassifier {
                 : isPublicOfficial(positionTitle) ? PersonKind.PUBLIC_OFFICIAL : PersonKind.OTHER;
         String identityKey = verifiedMember
                 ? "assembly-member:" + sourcePersonId.trim().toLowerCase(Locale.ROOT)
-                : "provisional-name:" + canonicalName;
+                : "provisional-person:" + TextUtil.textSha1(String.join("|",
+                        canonicalName, identityPart(positionTitle), identityPart(organization)));
 
         return new PersonCandidate(
                 identityKey,
@@ -61,5 +64,9 @@ public class ParliamentPersonClassifier {
 
     private String blankToNull(String value) {
         return value == null || value.isBlank() ? null : value.trim();
+    }
+
+    private String identityPart(String value) {
+        return value == null ? "" : Normalizer.normalize(value, Normalizer.Form.NFKC).trim();
     }
 }
