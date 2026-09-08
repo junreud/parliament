@@ -74,6 +74,31 @@ class WebClientParliamentApiClientTest {
                 .hasMessageContaining("open.assembly.go.kr");
     }
 
+    @Test
+    void acceptsLargeJsonPagesWithinTheConfiguredSafetyLimit() {
+        String padding = "x".repeat(300_000);
+        WebClient webClient = WebClient.builder().exchangeFunction(request -> Mono.just(
+                ClientResponse.create(HttpStatus.OK)
+                        .header("Content-Type", "text/html;charset=UTF-8")
+                        .body("""
+                                {"ALLSCHEDULE":[
+                                  {"head":[{"list_total_count":1},{"RESULT":{"CODE":"INFO-000","MESSAGE":"OK"}}]},
+                                  {"row":[{"CONF_ID":"c1","PAD":"%s"}]}
+                                ]}
+                                """.formatted(padding))
+                        .build()
+        )).build();
+        WebClientParliamentApiClient client = new WebClientParliamentApiClient(
+                webClient, properties("test-key"), new OpenAssemblyResponseParser());
+        ParliamentSourceDefinition source = new ParliamentSourceDefinition(
+                "schedule", "ALLSCHEDULE", "일정", "15126132",
+                ParliamentMediaType.DATA, ParliamentCollectionMode.PAGE, Map.of());
+
+        StepVerifier.create(client.fetch(source, 1, 100))
+                .expectNextMatches(page -> page.rows().size() == 1)
+                .verifyComplete();
+    }
+
     private ParliamentIngestionProperties properties(String apiKey) {
         ParliamentIngestionProperties properties = new ParliamentIngestionProperties();
         properties.setApiKey(apiKey);
