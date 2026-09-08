@@ -1,6 +1,5 @@
 package dev.parliament.api;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import dev.parliament.config.ParliamentIngestionProperties;
 import dev.parliament.config.ParliamentSourceDefinition;
 import org.springframework.http.HttpStatusCode;
@@ -54,7 +53,7 @@ public class WebClientParliamentApiClient implements ParliamentApiClient {
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, response -> Mono.just(
                         new OpenAssemblyApiException("Open Assembly HTTP error " + response.statusCode().value())))
-                .bodyToMono(JsonNode.class)
+                .bodyToMono(String.class)
                 .timeout(Duration.ofSeconds(20))
                 .map(body -> parser.parse(source.apiCode(), body))
                 .onErrorMap(WebClientRequestException.class,

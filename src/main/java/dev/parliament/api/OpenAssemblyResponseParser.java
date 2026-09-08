@@ -1,5 +1,6 @@
 package dev.parliament.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,6 +11,14 @@ import java.util.Map;
 public class OpenAssemblyResponseParser {
     private static final String SUCCESS_CODE = "INFO-000";
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public OpenAssemblyPage parse(String apiCode, String body) {
+        try {
+            return parse(apiCode, objectMapper.readTree(body));
+        } catch (JsonProcessingException error) {
+            throw new OpenAssemblyApiException("invalid JSON response for " + apiCode);
+        }
+    }
 
     public OpenAssemblyPage parse(String apiCode, JsonNode body) {
         JsonNode topLevelResult = body.path("RESULT");
@@ -43,4 +52,3 @@ public class OpenAssemblyResponseParser {
         return new OpenAssemblyApiException("Open Assembly API error " + code + ": " + message);
     }
 }
-
