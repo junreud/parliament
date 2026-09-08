@@ -75,7 +75,7 @@ class ParliamentSocialAccountMapperTest {
     void mapsActualOpenAssemblySnsFieldNames() {
         var accounts = mapper.map(Map.of(
                 "T_URL", "https://twitter.com/member",
-                "F_URL", "https://facebook.com/member",
+                "F_URL", "https://web.facebook.com/member",
                 "Y_URL", "https://youtube.com/@member",
                 "B_URL", "https://blog.naver.com/member"
         ));
@@ -86,5 +86,9 @@ class ParliamentSocialAccountMapperTest {
                         SocialPlatform.YOUTUBE,
                         SocialPlatform.NAVER_BLOG,
                         SocialPlatform.FACEBOOK);
+        assertThat(accounts).filteredOn(account -> account.platform() == SocialPlatform.FACEBOOK)
+                .singleElement()
+                .extracting(SocialAccount::url)
+                .isEqualTo("https://facebook.com/member");
     }
 }
