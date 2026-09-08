@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: parliament-data-platform
+  r2dbc:
+    url: ${PARLIAMENT_DB_URL:r2dbc:mysql://localhost:3307/parliament}
+    username: ${PARLIAMENT_DB_USER:parliament}
+    password: ${PARLIAMENT_DB_PASSWORD:}
+
+parliament:
+  ingestion:
+    enabled: ${PARLIAMENT_INGESTION_ENABLED:false}
+    write-enabled: ${PARLIAMENT_INGESTION_WRITE_ENABLED:false}
+    api-key: ${PARLIAMENT_INGESTION_API_KEY:}
+    admin-key: ${PARLIAMENT_INGESTION_ADMIN_KEY:}
+    max-page-size: ${PARLIAMENT_INGESTION_MAX_PAGE_SIZE:100}
+    max-pages-per-run: ${PARLIAMENT_INGESTION_MAX_PAGES_PER_RUN:1000}
+    base-url: https://open.assembly.go.kr/portal/openapi

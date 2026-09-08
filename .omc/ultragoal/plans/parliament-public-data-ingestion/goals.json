@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "planId": "parliament-public-data-ingestion",
+  "createdAt": "2026-09-08T04:16:46.090Z",
+  "updatedAt": "2026-09-08T04:16:52.773Z",
+  "briefPath": ".omc/ultragoal/plans/parliament-public-data-ingestion/brief.md",
+  "goalsPath": ".omc/ultragoal/plans/parliament-public-data-ingestion/goals.json",
+  "ledgerPath": ".omc/ultragoal/plans/parliament-public-data-ingestion/ledger.jsonl",
+  "claudeGoalMode": "aggregate",
+  "goals": [
+    {
+      "id": "G001-discovery",
+      "title": "Discovery",
+      "objective": "기존 collector framework와 최신 열린국회정보/data.go.kr 계약을 조사하고 영상 제외 소스 범위와 인물 분류 규칙을 확정한다",
+      "status": "in_progress",
+      "attempt": 1,
+      "createdAt": "2026-09-08T04:16:46.090Z",
+      "updatedAt": "2026-09-08T04:16:52.773Z",
+      "startedAt": "2026-09-08T04:16:52.773Z"
+    },
+    {
+      "id": "G002-domain-model",
+      "title": "Domain model",
+      "objective": "국회의원·정부 공직자·기타 제3자를 구분하고 직위 이력·외부 식별자·대표 SNS를 보존하는 정규화 모델을 구현한다",
+      "status": "pending",
+      "attempt": 0,
+      "createdAt": "2026-09-08T04:16:46.090Z",
+      "updatedAt": "2026-09-08T04:16:46.090Z"
+    },
+    {
+      "id": "G003-collectors",
+      "title": "Collectors",
+      "objective": "영상 데이터를 제외한 국회 공개 API 소스의 선언적 카탈로그와 페이지네이션·정규화 수집기를 구현한다",
+      "status": "pending",
+      "attempt": 0,
+      "createdAt": "2026-09-08T04:16:46.090Z",
+      "updatedAt": "2026-09-08T04:16:46.090Z"
+    },
+    {
+      "id": "G004-preflight",
+      "title": "Preflight",
+      "objective": "자격증명과 실제 쓰기 없이 연결·스키마·샘플 변환·체크포인트를 검증하고 명시적 실행만 남기는 적재 프리플라이트를 구현한다",
+      "status": "pending",
+      "attempt": 0,
+      "createdAt": "2026-09-08T04:16:46.090Z",
+      "updatedAt": "2026-09-08T04:16:46.090Z"
+    },
+    {
+      "id": "G005-quality-gate",
+      "title": "Quality gate",
+      "objective": "테스트·문서·ai-slop-cleaner·검증·코드리뷰를 완료하고 실행 직전 상태를 증명한다",
+      "status": "pending",
+      "attempt": 0,
+      "createdAt": "2026-09-08T04:16:46.090Z",
+      "updatedAt": "2026-09-08T04:16:46.090Z"
+    }
+  ],
+  "claudeObjective": "Complete all ultragoal stories in .omc/ultragoal/plans/parliament-public-data-ingestion/goals.json: G001-discovery Discovery; G002-domain-model Domain model; G003-collectors Collectors; G004-preflight Preflight; G005-quality-gate Quality gate",
+  "activeGoalId": "G001-discovery"
+}
