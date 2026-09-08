@@ -51,6 +51,8 @@ class WebClientParliamentApiClientTest {
         assertThat(captured.get().url().getHost()).isEqualTo("open.assembly.go.kr");
         assertThat(captured.get().url().getPath()).endsWith("/ALLSCHEDULE");
         assertThat(query).contains("Type=json", "pIndex=2", "pSize=25", "AGE=22", "KEY=test-key");
+        assertThat(captured.get().headers().getFirst("User-Agent"))
+                .isEqualTo("Mozilla/5.0 (compatible; ParliamentDataPlatform/1.0; +https://github.com/junreud/parliament)");
     }
 
     @Test
@@ -78,4 +80,3 @@ class WebClientParliamentApiClientTest {
         return properties;
     }
 }
-
