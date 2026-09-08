@@ -26,7 +26,7 @@ class WebClientParliamentApiClientTest {
         WebClient webClient = WebClient.builder().exchangeFunction(request -> {
             captured.set(request);
             return Mono.just(ClientResponse.create(HttpStatus.OK)
-                    .header("Content-Type", "application/json")
+                    .header("Content-Type", "text/html;charset=UTF-8")
                     .body("""
                             {"ALLSCHEDULE":[
                               {"head":[{"list_total_count":1},{"RESULT":{"CODE":"INFO-000","MESSAGE":"OK"}}]},
