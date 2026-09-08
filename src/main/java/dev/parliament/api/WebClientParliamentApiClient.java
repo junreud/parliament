@@ -15,6 +15,8 @@ import java.util.regex.Pattern;
 
 public class WebClientParliamentApiClient implements ParliamentApiClient {
     private static final String OFFICIAL_HOST = "open.assembly.go.kr";
+    private static final String USER_AGENT =
+            "Mozilla/5.0 (compatible; ParliamentDataPlatform/1.0; +https://github.com/junreud/parliament)";
     private static final Pattern API_CODE = Pattern.compile("[A-Za-z0-9]+$");
 
     private final WebClient webClient;
@@ -48,6 +50,7 @@ public class WebClientParliamentApiClient implements ParliamentApiClient {
                     source.fixedParams().forEach(builder::queryParam);
                     return builder.queryParam("KEY", apiKey).build();
                 })
+                .header("User-Agent", USER_AGENT)
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, response -> Mono.just(
                         new OpenAssemblyApiException("Open Assembly HTTP error " + response.statusCode().value())))
