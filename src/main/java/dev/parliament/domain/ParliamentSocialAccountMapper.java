@@ -55,7 +55,11 @@ public class ParliamentSocialAccountMapper {
             }
             String path = parsed.getPath() == null ? "" : parsed.getPath().replaceAll("/+$", "");
             String handle = lastPathPart(path).replaceFirst("^@", "");
-            String canonicalHost = platform == SocialPlatform.X ? "x.com" : host.replaceFirst("^www\\.", "");
+            String canonicalHost = switch (platform) {
+                case X -> "x.com";
+                case FACEBOOK -> "facebook.com";
+                default -> host.replaceFirst("^www\\.", "");
+            };
             String canonicalUrl = "https://" + canonicalHost + path;
             return Optional.of(new SocialAccount(
                     platform,
@@ -92,7 +96,9 @@ public class ParliamentSocialAccountMapper {
             case X -> host.equals("x.com") || host.equals("twitter.com") || host.equals("www.twitter.com");
             case YOUTUBE -> host.equals("youtube.com") || host.equals("www.youtube.com") || host.equals("youtu.be");
             case NAVER_BLOG -> host.equals("blog.naver.com") || host.equals("m.blog.naver.com");
-            case FACEBOOK -> host.equals("facebook.com") || host.equals("www.facebook.com");
+            case FACEBOOK -> host.equals("facebook.com")
+                    || host.equals("www.facebook.com")
+                    || host.equals("web.facebook.com");
             case INSTAGRAM -> host.equals("instagram.com") || host.equals("www.instagram.com");
             case THREADS -> host.equals("threads.net") || host.equals("www.threads.net");
             case TIKTOK -> host.equals("tiktok.com") || host.equals("www.tiktok.com");
