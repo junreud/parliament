@@ -70,4 +70,21 @@ class ParliamentSocialAccountMapperTest {
                 .extracting(SocialAccount::url)
                 .isEqualTo("https://x.com/primary");
     }
+
+    @Test
+    void mapsActualOpenAssemblySnsFieldNames() {
+        var accounts = mapper.map(Map.of(
+                "T_URL", "https://twitter.com/member",
+                "F_URL", "https://facebook.com/member",
+                "Y_URL", "https://youtube.com/@member",
+                "B_URL", "https://blog.naver.com/member"
+        ));
+
+        assertThat(accounts).extracting(SocialAccount::platform)
+                .containsExactly(
+                        SocialPlatform.X,
+                        SocialPlatform.YOUTUBE,
+                        SocialPlatform.NAVER_BLOG,
+                        SocialPlatform.FACEBOOK);
+    }
 }

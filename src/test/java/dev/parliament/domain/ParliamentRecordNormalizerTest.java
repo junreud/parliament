@@ -23,6 +23,7 @@ class ParliamentRecordNormalizerTest {
         NormalizedParliamentRecord record = normalizer.normalize(source, Map.of(
                 "NAAS_CD", "A001",
                 "NAAS_NM", "홍길동",
+                "PLPT_NM", "미래정당",
                 "TWITTER_URL", "https://x.com/hong",
                 "YOUTUBE_URL", "https://youtube.com/@hongtv"
         ));
@@ -30,6 +31,8 @@ class ParliamentRecordNormalizerTest {
         assertThat(record.recordKey()).isEqualTo("A001");
         assertThat(record.people()).singleElement().satisfies(person -> {
             assertThat(person.kind()).isEqualTo(PersonKind.LEGISLATOR);
+            assertThat(person.positionTitle()).isEqualTo("국회의원");
+            assertThat(person.organization()).isEqualTo("미래정당");
             assertThat(person.socialAccounts()).extracting(SocialAccount::platform)
                     .containsExactlyInAnyOrder(SocialPlatform.X, SocialPlatform.YOUTUBE);
         });
@@ -46,4 +49,3 @@ class ParliamentRecordNormalizerTest {
                 .isEqualTo(normalizer.normalize(source, row).recordKey());
     }
 }
-
