@@ -20,7 +20,9 @@ public class ParliamentRecordNormalizer {
     );
     private static final List<String> PERSON_ID_FIELDS = List.of("NAAS_CD", "MONA_CD", "MEMBER_ID");
     private static final List<String> POSITION_FIELDS = List.of("JOB_TITLE", "POSITION", "OFFICE", "ROLE", "TITLE");
-    private static final List<String> ORGANIZATION_FIELDS = List.of("DEPT_NM", "ORG_NM", "COMMITTEE_NAME", "PARTY_NAME");
+    private static final List<String> ORGANIZATION_FIELDS = List.of(
+            "DEPT_NM", "ORG_NM", "PLPT_NM", "BLNG_CMIT_NM", "CMIT_NM", "COMMITTEE_NAME", "PARTY_NAME"
+    );
 
     private final ObjectMapper objectMapper;
     private final ParliamentPersonClassifier classifier;
@@ -63,7 +65,11 @@ public class ParliamentRecordNormalizer {
         String sourcePersonId = firstValue(row, PERSON_ID_FIELDS);
         String position = firstValue(row, POSITION_FIELDS);
         String organization = firstValue(row, ORGANIZATION_FIELDS);
-        boolean memberSource = source.apiCode().equals("ALLNAMEMBER")
+        boolean integratedMemberSource = source.apiCode().equals("ALLNAMEMBER");
+        if (position == null && integratedMemberSource) {
+            position = "국회의원";
+        }
+        boolean memberSource = integratedMemberSource
                 || source.name().contains("국회의원")
                 || sourcePersonId != null;
         List<PersonCandidate> people = new ArrayList<>();
