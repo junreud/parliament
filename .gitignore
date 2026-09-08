@@ -2,6 +2,7 @@
 build/
 .idea/
 *.iml
+.DS_Store
 .env
 .local/
 graphify-out/
