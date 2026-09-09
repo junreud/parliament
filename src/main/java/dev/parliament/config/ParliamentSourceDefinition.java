@@ -14,5 +14,11 @@ public record ParliamentSourceDefinition(
     public ParliamentSourceDefinition {
         fixedParams = fixedParams == null ? Map.of() : Map.copyOf(fixedParams);
     }
-}
 
+    public ParliamentSourceDefinition withFixedParams(Map<String, String> additionalParams) {
+        java.util.LinkedHashMap<String, String> merged = new java.util.LinkedHashMap<>(fixedParams);
+        merged.putAll(additionalParams);
+        return new ParliamentSourceDefinition(
+                key, apiCode, name, dataGoKrId, mediaType, collectionMode, merged);
+    }
+}

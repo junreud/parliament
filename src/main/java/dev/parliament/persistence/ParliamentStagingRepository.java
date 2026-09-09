@@ -6,7 +6,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
-public interface ParliamentStagingRepository {
+public interface ParliamentStagingRepository extends ParliamentParameterValueRepository {
     Mono<ParliamentIngestionCheckpoint> checkpoint(String sourceKey);
 
     Mono<Void> savePage(

@@ -14,4 +14,5 @@ parliament:
     admin-key: ${PARLIAMENT_INGESTION_ADMIN_KEY:}
     max-page-size: ${PARLIAMENT_INGESTION_MAX_PAGE_SIZE:100}
     max-pages-per-run: ${PARLIAMENT_INGESTION_MAX_PAGES_PER_RUN:1000}
+    current-assembly-number: ${PARLIAMENT_CURRENT_ASSEMBLY_NUMBER:22}
     base-url: https://open.assembly.go.kr/portal/openapi

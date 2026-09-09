@@ -25,6 +25,35 @@ public class R2dbcParliamentStagingRepository implements ParliamentStagingReposi
     }
 
     @Override
+    public Flux<String> distinctRawValues(String sourceKey, String field, int limit) {
+        if (sourceKey == null || sourceKey.isBlank()) {
+            return Flux.error(new IllegalArgumentException("sourceKey is required"));
+        }
+        if (field == null || !field.matches("[A-Z0-9_]+")) {
+            return Flux.error(new IllegalArgumentException("invalid raw payload field"));
+        }
+        if (limit < 1 || limit > 100_000) {
+            return Flux.error(new IllegalArgumentException("limit must be between 1 and 100000"));
+        }
+        String jsonPath = "$." + field;
+        return databaseClient.sql("""
+                        SELECT JSON_UNQUOTE(JSON_EXTRACT(raw_payload, :jsonPath)) AS parameter_value
+                        FROM parliament_source_record
+                        WHERE source_key = :sourceKey
+                          AND JSON_EXTRACT(raw_payload, :jsonPath) IS NOT NULL
+                          AND JSON_UNQUOTE(JSON_EXTRACT(raw_payload, :jsonPath)) <> ''
+                        GROUP BY parameter_value
+                        ORDER BY MAX(last_seen_at) DESC
+                        LIMIT :resultLimit
+                        """)
+                .bind("jsonPath", jsonPath)
+                .bind("sourceKey", sourceKey)
+                .bind("resultLimit", limit)
+                .map((row, metadata) -> row.get("parameter_value", String.class))
+                .all();
+    }
+
+    @Override
     public Mono<ParliamentIngestionCheckpoint> checkpoint(String sourceKey) {
         return databaseClient.sql("""
                         SELECT next_page, complete

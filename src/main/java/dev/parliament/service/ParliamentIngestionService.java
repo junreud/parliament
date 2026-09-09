@@ -20,27 +20,31 @@ public class ParliamentIngestionService {
     private final ParliamentRecordNormalizer normalizer;
     private final ParliamentSourceCatalog catalog;
     private final ParliamentIngestionProperties properties;
+    private final ParliamentParameterResolver parameterResolver;
 
     public ParliamentIngestionService(
             ParliamentApiClient apiClient,
             ParliamentStagingRepository repository,
             ParliamentRecordNormalizer normalizer,
             ParliamentSourceCatalog catalog,
-            ParliamentIngestionProperties properties
+            ParliamentIngestionProperties properties,
+            ParliamentParameterResolver parameterResolver
     ) {
         this.apiClient = apiClient;
         this.repository = repository;
         this.normalizer = normalizer;
         this.catalog = catalog;
         this.properties = properties;
+        this.parameterResolver = parameterResolver;
     }
 
     public Mono<ParliamentIngestionReport> preflight(ParliamentIngestionRequest request) {
         validate(request);
         return Flux.fromIterable(resolveSources(request))
-                .concatMap(source -> apiClient.fetch(source, 1, request.pageSize())
-                        .map(page -> report(source, normalize(source, page), 1,
-                                isComplete(page, 1, request.pageSize()), ParliamentSourceStatus.READY))
+                .concatMap(source -> parameterResolver.resolveSample(source)
+                        .flatMap(resolved -> apiClient.fetch(resolved, 1, request.pageSize())
+                                .map(page -> report(source, normalize(source, page), 1,
+                                        isComplete(page, 1, request.pageSize()), ParliamentSourceStatus.READY)))
                         .onErrorResume(error -> Mono.just(failed(source, error))))
                 .collectList()
                 .map(reports -> new ParliamentIngestionReport(false, reports));
@@ -55,11 +59,12 @@ public class ParliamentIngestionService {
             return Mono.error(new IllegalArgumentException("confirmWrite must be true"));
         }
         return Flux.fromIterable(resolveSources(request))
-                .concatMap(source -> repository.checkpoint(source.key())
-                        .defaultIfEmpty(ParliamentIngestionCheckpoint.initial())
-                        .flatMap(checkpoint -> checkpoint.complete()
-                                ? Mono.just(alreadyComplete(source))
-                                : ingestPage(source, checkpoint.nextPage(), request, 0))
+                .concatMap(source -> parameterResolver.resolveSample(source)
+                        .flatMap(resolved -> repository.checkpoint(source.key())
+                                .defaultIfEmpty(ParliamentIngestionCheckpoint.initial())
+                                .flatMap(checkpoint -> checkpoint.complete()
+                                        ? Mono.just(alreadyComplete(source))
+                                        : ingestPage(resolved, checkpoint.nextPage(), request, 0)))
                         .onErrorResume(error -> Mono.just(failed(source, error))))
                 .collectList()
                 .map(reports -> new ParliamentIngestionReport(true, reports));

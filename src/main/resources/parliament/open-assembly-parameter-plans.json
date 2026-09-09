@@ -1,0 +1,966 @@
+{
+  "plans": [
+    {
+      "sourceKey": "npffdutiapkzbfyvr",
+      "officialInfId": "OBL7NF0011935G18076",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "UNIT_CD",
+          "strategy": "CURRENT_ASSEMBLY_UNIT_CODE",
+          "sampleValue": "100021"
+        }
+      ]
+    },
+    {
+      "sourceKey": "tvbpmbill11",
+      "officialInfId": "O4K6HM0012064I15889",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "AGE",
+          "strategy": "CURRENT_ASSEMBLY_NUMBER",
+          "sampleValue": "21"
+        }
+      ]
+    },
+    {
+      "sourceKey": "nohgwtzsamojdozky",
+      "officialInfId": "OF8AJV000972OP11430",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "AGE",
+          "strategy": "CURRENT_ASSEMBLY_NUMBER",
+          "sampleValue": "21"
+        }
+      ]
+    },
+    {
+      "sourceKey": "navxqzpzafxazsobg",
+      "officialInfId": "O3VXPE000987AB14703",
+      "status": "EMPTY_ALLOWED",
+      "bindings": []
+    },
+    {
+      "sourceKey": "nomxleneanjcruaez",
+      "officialInfId": "OEUJQB0012145514537",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "UNIT_CD",
+          "strategy": "CURRENT_ASSEMBLY_UNIT_CODE",
+          "sampleValue": "100021"
+        }
+      ]
+    },
+    {
+      "sourceKey": "nojepdqqaweusdfbi",
+      "officialInfId": "OPR1MQ000998LC12535",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "BILL_ID",
+          "strategy": "SOURCE_FIELD",
+          "sourceKey": "billrcp",
+          "sourceField": "BILL_ID",
+          "sampleValue": "PRC_Z2Z1S0W8P1O8G2A3D1E0V2Q0X2X5J3"
+        },
+        {
+          "parameter": "AGE",
+          "strategy": "CURRENT_ASSEMBLY_NUMBER",
+          "sampleValue": "21"
+        }
+      ]
+    },
+    {
+      "sourceKey": "nzbyfwhwaoanttzje",
+      "officialInfId": "OO1X9P001017YF13038",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "DAE_NUM",
+          "strategy": "CURRENT_ASSEMBLY_NUMBER",
+          "sampleValue": "21"
+        },
+        {
+          "parameter": "CONF_DATE",
+          "strategy": "CURRENT_YEAR",
+          "sampleValue": "2021"
+        }
+      ]
+    },
+    {
+      "sourceKey": "ninnagrlaelvtzfnt",
+      "officialInfId": "OBX2DO001030E516625",
+      "status": "RETRYABLE",
+      "bindings": []
+    },
+    {
+      "sourceKey": "nbqbmccpamsvwebkn",
+      "officialInfId": "OQ0A0T0011366V19103",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "HOST_DT",
+          "strategy": "CURRENT_YEAR",
+          "sampleValue": "2021"
+        }
+      ]
+    },
+    {
+      "sourceKey": "nzsmstfjaswvtbzii",
+      "officialInfId": "O93OTI000979JV17987",
+      "status": "EMPTY_ALLOWED",
+      "bindings": []
+    },
+    {
+      "sourceKey": "nepfnxudavtvchtlu",
+      "officialInfId": "O9KCDC000980U619570",
+      "status": "EMPTY_ALLOWED",
+      "bindings": []
+    },
+    {
+      "sourceKey": "nzpltgfqabtcpsmai",
+      "officialInfId": "OM5S9O0009857U12121",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "AGE",
+          "strategy": "CURRENT_ASSEMBLY_NUMBER",
+          "sampleValue": "21"
+        }
+      ]
+    },
+    {
+      "sourceKey": "nqbeopthavwwfbekw",
+      "officialInfId": "OXJNQM001195IT17281",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "PROFILE_UNIT_CD",
+          "strategy": "CURRENT_ASSEMBLY_UNIT_CODE",
+          "sampleValue": "100021"
+        }
+      ]
+    },
+    {
+      "sourceKey": "numwhtqhavaqssfle",
+      "officialInfId": "O78HKE0010099W15881",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "REGDAESU",
+          "strategy": "CURRENT_ASSEMBLY_NUMBER",
+          "sampleValue": "21"
+        }
+      ]
+    },
+    {
+      "sourceKey": "ncwgseseafwbuheph",
+      "officialInfId": "OR137O001023MZ19321",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "DAE_NUM",
+          "strategy": "CURRENT_ASSEMBLY_NUMBER",
+          "sampleValue": "21"
+        },
+        {
+          "parameter": "CONF_DATE",
+          "strategy": "CURRENT_YEAR",
+          "sampleValue": "2021"
+        }
+      ]
+    },
+    {
+      "sourceKey": "nbslryaradshbpbpm",
+      "officialInfId": "ODFFIG001072OX10139",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "AGE",
+          "strategy": "CURRENT_ASSEMBLY_NUMBER",
+          "sampleValue": "21"
+        }
+      ]
+    },
+    {
+      "sourceKey": "nprlapfmaufmqytet",
+      "officialInfId": "OQG5IZ0011449610187",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "DAESU",
+          "strategy": "CURRENT_ASSEMBLY_NUMBER",
+          "sampleValue": "21"
+        }
+      ]
+    },
+    {
+      "sourceKey": "nekcaiymatialqlxr",
+      "officialInfId": "ORDPSW001070QH19059",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "UNIT_CD",
+          "strategy": "CURRENT_ASSEMBLY_UNIT_CODE",
+          "sampleValue": "100021"
+        }
+      ]
+    },
+    {
+      "sourceKey": "nfzegpkvaclgtscxt",
+      "officialInfId": "OD21030011944P19666",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "PROFILE_UNIT_CD",
+          "strategy": "CURRENT_ASSEMBLY_UNIT_CODE",
+          "sampleValue": "100021"
+        }
+      ]
+    },
+    {
+      "sourceKey": "ngytonzwavydlbbha",
+      "officialInfId": "O8WI650012155G10023",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "DAE_NUM",
+          "strategy": "CURRENT_ASSEMBLY_NUMBER",
+          "sampleValue": "21"
+        },
+        {
+          "parameter": "CONF_DATE",
+          "strategy": "CURRENT_YEAR",
+          "sampleValue": "2021"
+        }
+      ]
+    },
+    {
+      "sourceKey": "nfvmtaqoaldzhobsw",
+      "officialInfId": "O8685D0008489413266",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "UNIT_CD",
+          "strategy": "CURRENT_ASSEMBLY_UNIT_CODE",
+          "sampleValue": "100021"
+        }
+      ]
+    },
+    {
+      "sourceKey": "njzofberazvhjncha",
+      "officialInfId": "O8D9RF000933S512258",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "FSCL_YY",
+          "strategy": "CURRENT_YEAR",
+          "sampleValue": "2021"
+        }
+      ]
+    },
+    {
+      "sourceKey": "nzmimeepazxkubdpn",
+      "officialInfId": "OK7XM1000938DS17215",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "AGE",
+          "strategy": "CURRENT_ASSEMBLY_NUMBER",
+          "sampleValue": "21"
+        }
+      ]
+    },
+    {
+      "sourceKey": "nbdlhufiaebnmjfxf",
+      "officialInfId": "O84OO9000939BC16536",
+      "status": "RETRYABLE",
+      "bindings": []
+    },
+    {
+      "sourceKey": "ncrwiahparxrpodcv",
+      "officialInfId": "OEQ77R000942NL11530",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "REGDAESU",
+          "strategy": "CURRENT_ASSEMBLY_NUMBER",
+          "sampleValue": "21"
+        }
+      ]
+    },
+    {
+      "sourceKey": "nneiozjtawpqhaidq",
+      "officialInfId": "O610V6000952AV17729",
+      "status": "EMPTY_ALLOWED",
+      "bindings": []
+    },
+    {
+      "sourceKey": "noqtcnaiatcpgepvt",
+      "officialInfId": "OCSMEJ000953O916134",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "FORMATION_DT",
+          "strategy": "CURRENT_DATE",
+          "sampleValue": "2021-12-05"
+        }
+      ]
+    },
+    {
+      "sourceKey": "nrsldhjpaemrmolla",
+      "officialInfId": "OHXILX000958DD14523",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "UNIT_CD",
+          "strategy": "CURRENT_ASSEMBLY_UNIT_CODE",
+          "sampleValue": "100021"
+        }
+      ]
+    },
+    {
+      "sourceKey": "nttmdfdcaakvibdar",
+      "officialInfId": "O27DU0000960M511942",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "UNIT_CD",
+          "strategy": "CURRENT_ASSEMBLY_UNIT_CODE",
+          "sampleValue": "100021"
+        }
+      ]
+    },
+    {
+      "sourceKey": "nrkqqbvfanfybishu",
+      "officialInfId": "O4UN9N000961PS11812",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "UNIT_CD",
+          "strategy": "CURRENT_ASSEMBLY_UNIT_CODE",
+          "sampleValue": "100021"
+        }
+      ]
+    },
+    {
+      "sourceKey": "ncryefyuaflxnqbqo",
+      "officialInfId": "OQ50H1000962NX16376",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "AGE",
+          "strategy": "CURRENT_ASSEMBLY_NUMBER",
+          "sampleValue": "21"
+        }
+      ]
+    },
+    {
+      "sourceKey": "napvpafracrdkxmoq",
+      "officialInfId": "OKBFLN000963SS13091",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "UNIT_CD",
+          "strategy": "CURRENT_ASSEMBLY_UNIT_CODE",
+          "sampleValue": "100021"
+        }
+      ]
+    },
+    {
+      "sourceKey": "ncocpgfiaoituanbr",
+      "officialInfId": "OND1KZ0009677M13515",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "AGE",
+          "strategy": "CURRENT_ASSEMBLY_NUMBER",
+          "sampleValue": "21"
+        }
+      ]
+    },
+    {
+      "sourceKey": "nxjuyqnxadtotdrbw",
+      "officialInfId": "OS18DL000970OU13480",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "AGE",
+          "strategy": "CURRENT_ASSEMBLY_NUMBER",
+          "sampleValue": "21"
+        }
+      ]
+    },
+    {
+      "sourceKey": "nuvypcdgahexhvrjt",
+      "officialInfId": "OVW2NU000937WK15521",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "DAE_NUM",
+          "strategy": "CURRENT_ASSEMBLY_NUMBER",
+          "sampleValue": "21"
+        }
+      ]
+    },
+    {
+      "sourceKey": "nlcqadrmachptelsf",
+      "officialInfId": "OY3EE5000956Q913543",
+      "status": "EMPTY_ALLOWED",
+      "bindings": []
+    },
+    {
+      "sourceKey": "nzgjnvnraowulzqwl",
+      "officialInfId": "O32948001073L213726",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "AGE",
+          "strategy": "CURRENT_ASSEMBLY_NUMBER",
+          "sampleValue": "21"
+        }
+      ]
+    },
+    {
+      "sourceKey": "npbzvuwvasdqldskm",
+      "officialInfId": "OZY6M30010164K11655",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "TAKING_DATE",
+          "strategy": "CURRENT_YEAR",
+          "sampleValue": "2021"
+        }
+      ]
+    },
+    {
+      "sourceKey": "nauvppbxargkmyovh",
+      "officialInfId": "OFOEZN001060N312362",
+      "status": "RETRYABLE",
+      "bindings": []
+    },
+    {
+      "sourceKey": "nqfvrbsdafrmuzixe",
+      "officialInfId": "O8U5BW001076JT16522",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "DT",
+          "strategy": "CURRENT_DATE",
+          "sampleValue": "2021-12-02"
+        },
+        {
+          "parameter": "AGE",
+          "strategy": "CURRENT_ASSEMBLY_NUMBER",
+          "sampleValue": "21"
+        }
+      ]
+    },
+    {
+      "sourceKey": "nuizrfvoaepvwrjtz",
+      "officialInfId": "ODNHIU0010588P19122",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "REG_DATE",
+          "strategy": "CURRENT_DATE",
+          "sampleValue": "2021-11-30"
+        }
+      ]
+    },
+    {
+      "sourceKey": "nbzyjjyoamdqqjorw",
+      "officialInfId": "OZUY2X001061ON17910",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "REG_DATE",
+          "strategy": "CURRENT_DATE",
+          "sampleValue": "2021-12-01"
+        }
+      ]
+    },
+    {
+      "sourceKey": "nkalemivaqmoibxro",
+      "officialInfId": "OW1R4X0010744X17495",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "AGE",
+          "strategy": "CURRENT_ASSEMBLY_NUMBER",
+          "sampleValue": "21"
+        }
+      ]
+    },
+    {
+      "sourceKey": "nwbpacrgavhjryiph",
+      "officialInfId": "OQ68B8001071ZB13418",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "AGE",
+          "strategy": "CURRENT_ASSEMBLY_NUMBER",
+          "sampleValue": "21"
+        }
+      ]
+    },
+    {
+      "sourceKey": "ndiwuqmpambgvnfsj",
+      "officialInfId": "OY18U4001075AG16626",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "CURR_COMMITTEE",
+          "strategy": "SOURCE_FIELD",
+          "sourceKey": "nwvrqwxyaytdsfvhu",
+          "sourceField": "CMIT_NM",
+          "sampleValue": "과학기술"
+        }
+      ]
+    },
+    {
+      "sourceKey": "vconfphconflist",
+      "officialInfId": "OOWY4R001216HX11518",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "ERACO",
+          "strategy": "CURRENT_ASSEMBLY_LABEL"
+        }
+      ]
+    },
+    {
+      "sourceKey": "vconfdetail",
+      "officialInfId": "OOWY4R001216HX11520",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "CONF_ID",
+          "strategy": "SOURCE_FIELD",
+          "sourceKey": "vconfbilllist",
+          "sourceField": "CONF_ID"
+        }
+      ]
+    },
+    {
+      "sourceKey": "vconfblllist",
+      "officialInfId": "OOWY4R001216HX11524",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "CONF_ID",
+          "strategy": "SOURCE_FIELD",
+          "sourceKey": "vconfbilllist",
+          "sourceField": "CONF_ID"
+        }
+      ]
+    },
+    {
+      "sourceKey": "vconfbillconflist",
+      "officialInfId": "OOWY4R001216HX11526",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "BILL_ID",
+          "strategy": "SOURCE_FIELD",
+          "sourceKey": "billrcp",
+          "sourceField": "BILL_ID"
+        }
+      ]
+    },
+    {
+      "sourceKey": "namemberlegischedule",
+      "officialInfId": "OOWY4R001216HX11415",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "NAAS_CD",
+          "strategy": "SOURCE_FIELD",
+          "sourceKey": "nwvrqwxyaytdsfvhu",
+          "sourceField": "MONA_CD"
+        }
+      ]
+    },
+    {
+      "sourceKey": "namembercmitschedule",
+      "officialInfId": "OOWY4R001216HX11417",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "NAAS_CD",
+          "strategy": "SOURCE_FIELD",
+          "sourceKey": "nwvrqwxyaytdsfvhu",
+          "sourceField": "MONA_CD"
+        }
+      ]
+    },
+    {
+      "sourceKey": "namemberlegiptt",
+      "officialInfId": "OOWY4R001216HX11425",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "NAAS_CD",
+          "strategy": "SOURCE_FIELD",
+          "sourceKey": "nwvrqwxyaytdsfvhu",
+          "sourceField": "MONA_CD",
+          "sampleValue": "GE71932C"
+        }
+      ]
+    },
+    {
+      "sourceKey": "nanetpblmleginew",
+      "officialInfId": "OOWY4R001216HX11428",
+      "status": "EMPTY_ALLOWED",
+      "bindings": []
+    },
+    {
+      "sourceKey": "nanetpblmlegi",
+      "officialInfId": "OOWY4R001216HX11430",
+      "status": "EMPTY_ALLOWED",
+      "bindings": []
+    },
+    {
+      "sourceKey": "allbill",
+      "officialInfId": "OOWY4R001216HX11440",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "BILL_NO",
+          "strategy": "SOURCE_FIELD",
+          "sourceKey": "billrcp",
+          "sourceField": "BILL_NO",
+          "sampleValue": "2123836"
+        }
+      ]
+    },
+    {
+      "sourceKey": "billinfoppsr",
+      "officialInfId": "OOWY4R001216HX11460",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "BILL_ID",
+          "strategy": "SOURCE_FIELD",
+          "sourceKey": "billrcp",
+          "sourceField": "BILL_ID",
+          "sampleValue": "PRC_U2O3L0J7N2P7I1M4U0D6M5Y6H2Y3P1"
+        }
+      ]
+    },
+    {
+      "sourceKey": "billinfodetail",
+      "officialInfId": "OOWY4R001216HX11461",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "BILL_ID",
+          "strategy": "SOURCE_FIELD",
+          "sourceKey": "billrcp",
+          "sourceField": "BILL_ID",
+          "sampleValue": "13987"
+        }
+      ]
+    },
+    {
+      "sourceKey": "billcntmain",
+      "officialInfId": "OOWY4R001216HX11471",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "ERACO",
+          "strategy": "CURRENT_ASSEMBLY_LABEL",
+          "sampleValue": "제21대"
+        }
+      ]
+    },
+    {
+      "sourceKey": "billcntcmit",
+      "officialInfId": "OOWY4R001216HX11472",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "ERACO",
+          "strategy": "CURRENT_ASSEMBLY_LABEL",
+          "sampleValue": "제21대"
+        }
+      ]
+    },
+    {
+      "sourceKey": "billcntlawdiv",
+      "officialInfId": "OOWY4R001216HX11473",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "ERACO",
+          "strategy": "CURRENT_ASSEMBLY_LABEL",
+          "sampleValue": "제21대"
+        }
+      ]
+    },
+    {
+      "sourceKey": "billcntlawcmit",
+      "officialInfId": "OOWY4R001216HX11475",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "ERACO",
+          "strategy": "CURRENT_ASSEMBLY_LABEL",
+          "sampleValue": "제21대"
+        }
+      ]
+    },
+    {
+      "sourceKey": "billcntprpsr",
+      "officialInfId": "OOWY4R001216HX11477",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "ERACO",
+          "strategy": "CURRENT_ASSEMBLY_LABEL",
+          "sampleValue": "제21대"
+        }
+      ]
+    },
+    {
+      "sourceKey": "pttrcp",
+      "officialInfId": "OOWY4R001216HX11482",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "ERACO",
+          "strategy": "CURRENT_ASSEMBLY_LABEL",
+          "sampleValue": "제21대"
+        }
+      ]
+    },
+    {
+      "sourceKey": "pttinfoppsr",
+      "officialInfId": "OOWY4R001216HX11486",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "PTT_ID",
+          "strategy": "SOURCE_FIELD",
+          "sourceKey": "pttrcp",
+          "sourceField": "PTT_ID",
+          "sampleValue": "PRC_N2H3F0O8Z1A1G1X3W0N0A5J0F1M9Z1"
+        }
+      ]
+    },
+    {
+      "sourceKey": "pttinfodetail",
+      "officialInfId": "OOWY4R001216HX11489",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "PTT_ID",
+          "strategy": "SOURCE_FIELD",
+          "sourceKey": "pttrcp",
+          "sourceField": "PTT_ID",
+          "sampleValue": "PRC_N2H3F0O8Z1A1G1X3W0N0A5J0F1M9Z1"
+        }
+      ]
+    },
+    {
+      "sourceKey": "billjudgeconf",
+      "officialInfId": "OOWY4R001216HX11492",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "BILL_ID",
+          "strategy": "SOURCE_FIELD",
+          "sourceKey": "billrcp",
+          "sourceField": "BILL_ID",
+          "sampleValue": "PRC_J2U3K0T8M0N1D1Q7E5T9P4L3G2S1C1"
+        }
+      ]
+    },
+    {
+      "sourceKey": "billlwjudgeconf",
+      "officialInfId": "OOWY4R001216HX11493",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "BILL_ID",
+          "strategy": "SOURCE_FIELD",
+          "sourceKey": "billrcp",
+          "sourceField": "BILL_ID",
+          "sampleValue": "PRC_B2N3O0T7F1Q2Z1G3P5Q8D1C1X3O5H4"
+        }
+      ]
+    },
+    {
+      "sourceKey": "budgetadjudge",
+      "officialInfId": "OOWY4R001216HX11494",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "BILL_ID",
+          "strategy": "SOURCE_FIELD",
+          "sourceKey": "billrcp",
+          "sourceField": "BILL_ID",
+          "sampleValue": "PRC_G2K2T0X9E0N2G1S4H4E3Q3H9L0U8R9"
+        }
+      ]
+    },
+    {
+      "sourceKey": "budgetjudgeconf",
+      "officialInfId": "OOWY4R001216HX11495",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "BILL_ID",
+          "strategy": "SOURCE_FIELD",
+          "sourceKey": "billrcp",
+          "sourceField": "BILL_ID",
+          "sampleValue": "PRC_G2K2T0X9E0N2G1S4H4E3Q3H9L0U8R9"
+        }
+      ]
+    },
+    {
+      "sourceKey": "pttcntmain",
+      "officialInfId": "OOWY4R001216HX11496",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "ERACO",
+          "strategy": "CURRENT_ASSEMBLY_LABEL",
+          "sampleValue": "제21대"
+        }
+      ]
+    },
+    {
+      "sourceKey": "namemberevent",
+      "officialInfId": "OOWY4R001216HX11501",
+      "status": "UNRESOLVED",
+      "bindings": []
+    },
+    {
+      "sourceKey": "vconfbudgetconflist",
+      "officialInfId": "OOWY4R001216HX11505",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "ERACO",
+          "strategy": "CURRENT_ASSEMBLY_LABEL"
+        }
+      ]
+    },
+    {
+      "sourceKey": "vconfspcconflist",
+      "officialInfId": "OOWY4R001216HX11506",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "ERACO",
+          "strategy": "CURRENT_ASSEMBLY_LABEL"
+        }
+      ]
+    },
+    {
+      "sourceKey": "vconfapigconflist",
+      "officialInfId": "OOWY4R001216HX11507",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "ERACO",
+          "strategy": "CURRENT_ASSEMBLY_LABEL"
+        }
+      ]
+    },
+    {
+      "sourceKey": "vconfpipconflist",
+      "officialInfId": "OOWY4R001216HX11508",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "ERACO",
+          "strategy": "CURRENT_ASSEMBLY_LABEL"
+        }
+      ]
+    },
+    {
+      "sourceKey": "vconfcfrmconflist",
+      "officialInfId": "OOWY4R001216HX11509",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "ERACO",
+          "strategy": "CURRENT_ASSEMBLY_LABEL"
+        }
+      ]
+    },
+    {
+      "sourceKey": "vconfchconflist",
+      "officialInfId": "OOWY4R001216HX11510",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "ERACO",
+          "strategy": "CURRENT_ASSEMBLY_LABEL"
+        }
+      ]
+    },
+    {
+      "sourceKey": "vconfjmconflist",
+      "officialInfId": "OOWY4R001216HX11511",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "ERACO",
+          "strategy": "CURRENT_ASSEMBLY_LABEL"
+        }
+      ]
+    },
+    {
+      "sourceKey": "vconfdnaconflist",
+      "officialInfId": "OOWY4R001216HX11512",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "ERACO",
+          "strategy": "CURRENT_ASSEMBLY_LABEL"
+        }
+      ]
+    },
+    {
+      "sourceKey": "vconfsnaconflist",
+      "officialInfId": "OOWY4R001216HX11513",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "ERACO",
+          "strategy": "CURRENT_ASSEMBLY_LABEL"
+        }
+      ]
+    },
+    {
+      "sourceKey": "vconffdconflist",
+      "officialInfId": "OOWY4R001216HX11514",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "ERACO",
+          "strategy": "CURRENT_ASSEMBLY_LABEL"
+        }
+      ]
+    },
+    {
+      "sourceKey": "vconfattappendixlist",
+      "officialInfId": "OOWY4R001216HX11516",
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "CONF_ID",
+          "strategy": "SOURCE_FIELD",
+          "sourceKey": "vconfbilllist",
+          "sourceField": "CONF_ID"
+        }
+      ]
+    }
+  ]
+}

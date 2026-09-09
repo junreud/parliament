@@ -10,6 +10,7 @@ public class ParliamentIngestionProperties {
     private String adminKey;
     private int maxPageSize = 100;
     private int maxPagesPerRun = 1000;
+    private int currentAssemblyNumber = 22;
     private String baseUrl = "https://open.assembly.go.kr/portal/openapi";
 
     public boolean isEnabled() { return enabled; }
@@ -24,6 +25,13 @@ public class ParliamentIngestionProperties {
     public void setMaxPageSize(int maxPageSize) { this.maxPageSize = maxPageSize; }
     public int getMaxPagesPerRun() { return maxPagesPerRun; }
     public void setMaxPagesPerRun(int maxPagesPerRun) { this.maxPagesPerRun = maxPagesPerRun; }
+    public int getCurrentAssemblyNumber() { return currentAssemblyNumber; }
+    public void setCurrentAssemblyNumber(int currentAssemblyNumber) {
+        if (currentAssemblyNumber < 1 || currentAssemblyNumber > 99) {
+            throw new IllegalArgumentException("currentAssemblyNumber must be between 1 and 99");
+        }
+        this.currentAssemblyNumber = currentAssemblyNumber;
+    }
     public String getBaseUrl() { return baseUrl; }
     public void setBaseUrl(String baseUrl) { this.baseUrl = baseUrl; }
 }

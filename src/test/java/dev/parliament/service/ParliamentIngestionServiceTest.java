@@ -26,6 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,6 +37,7 @@ class ParliamentIngestionServiceTest {
     @Mock private ParliamentApiClient apiClient;
     @Mock private ParliamentStagingRepository repository;
     @Mock private ParliamentRecordNormalizer normalizer;
+    @Mock private ParliamentParameterResolver parameterResolver;
 
     private ParliamentSourceDefinition source;
     private ParliamentIngestionProperties properties;
@@ -46,6 +48,8 @@ class ParliamentIngestionServiceTest {
                 "assembly-members", "ALLNAMEMBER", "국회의원 정보 통합 API", "15126133",
                 ParliamentMediaType.DATA, ParliamentCollectionMode.PAGE, Map.of("AGE", "22"));
         properties = new ParliamentIngestionProperties();
+        lenient().when(parameterResolver.resolveSample(any()))
+                .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
     }
 
     @Test
@@ -107,6 +111,25 @@ class ParliamentIngestionServiceTest {
     }
 
     @Test
+    void preflightResolvesRequiredParametersBeforeCallingExternalApi() {
+        ParliamentSourceDefinition unresolved = new ParliamentSourceDefinition(
+                "allbill", "allbill", "의안 상세", null,
+                ParliamentMediaType.DATA, ParliamentCollectionMode.PAGE, Map.of());
+        ParliamentSourceDefinition resolved = unresolved.withFixedParams(Map.of("BILL_NO", "2200001"));
+        ParliamentSourceCatalog catalog = ParliamentSourceCatalog.of(List.of(unresolved));
+        when(parameterResolver.resolveSample(unresolved)).thenReturn(Mono.just(resolved));
+        when(apiClient.fetch(resolved, 1, 5)).thenReturn(Mono.just(new OpenAssemblyPage(0, List.of())));
+
+        StepVerifier.create(service(catalog).preflight(
+                        new ParliamentIngestionRequest(List.of("allbill"), 5, 1, false)))
+                .assertNext(report -> assertThat(report.sources()).singleElement()
+                        .satisfies(item -> assertThat(item.status()).isEqualTo(ParliamentSourceStatus.COMPLETE)))
+                .verifyComplete();
+
+        verify(apiClient).fetch(resolved, 1, 5);
+    }
+
+    @Test
     void runPersistsOnePageAndReportsPartialWhenPageLimitIsReached() {
         ParliamentSourceCatalog catalog = ParliamentSourceCatalog.of(List.of(source));
         Map<String, Object> row = Map.of("NAAS_CD", "m1", "NAAS_NM", "홍길동");
@@ -151,6 +174,7 @@ class ParliamentIngestionServiceTest {
     }
 
     private ParliamentIngestionService service(ParliamentSourceCatalog catalog) {
-        return new ParliamentIngestionService(apiClient, repository, normalizer, catalog, properties);
+        return new ParliamentIngestionService(
+                apiClient, repository, normalizer, catalog, properties, parameterResolver);
     }
 }
