@@ -243,6 +243,34 @@ class R2dbcParliamentStagingRepositoryTest {
     }
 
     @Test
+    void snapshotMarkerKeepsUnchangedRecordsDuringFinalization() {
+        ParliamentSourceDefinition source = new ParliamentSourceDefinition(
+                "nwvrqwxyaytdsfvhu", "nwvrqwxyaytdsfvhu", "국회의원 인적사항", null,
+                ParliamentMediaType.DATA, ParliamentCollectionMode.PAGE, Map.of());
+        NormalizedParliamentRecord record = new NormalizedParliamentRecord(
+                "A001", "1111111111111111111111111111111111111111",
+                "{\"MONA_CD\":\"A001\"}", List.of());
+        java.time.Instant snapshotMarker = java.time.Instant.parse("2030-01-01T00:00:00Z");
+
+        StepVerifier.create(repository.saveChangedPage(
+                        source, List.of(record), 1, 1, true, snapshotMarker))
+                .assertNext(result -> assertThat(result.changed()).isEqualTo(1))
+                .verifyComplete();
+        StepVerifier.create(repository.saveChangedPage(
+                        source, List.of(record), 1, 1, true, snapshotMarker))
+                .assertNext(result -> assertThat(result.unchanged()).isEqualTo(1))
+                .verifyComplete();
+
+        StepVerifier.create(repository.finalizeSourceSnapshot(source.key(), snapshotMarker))
+                .expectNext(0)
+                .verifyComplete();
+        StepVerifier.create(countWhere("parliament_source_record",
+                        "source_key = 'nwvrqwxyaytdsfvhu' AND record_key = 'A001'"))
+                .expectNext(1L)
+                .verifyComplete();
+    }
+
+    @Test
     void storesOfficialDirectoryEvidenceSeparatelyFromUrlHealth() {
         ParliamentSourceDefinition officialDirectory = new ParliamentSourceDefinition(
                 "negnlnyvatsjwocar", "negnlnyvatsjwocar", "국회의원 SNS", null,
