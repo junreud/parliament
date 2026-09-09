@@ -23,7 +23,9 @@ class ParliamentSchemaTest {
                     "CREATE TABLE `parliament_source_record`",
                     "CREATE TABLE `parliament_record_person`",
                     "CREATE TABLE `parliament_ingestion_checkpoint`",
-                    "CREATE TABLE `parliament_source_sync_state`");
+                    "CREATE TABLE `parliament_source_sync_state`",
+                    "CREATE TABLE `parliament_ingestion_run`",
+                    "CREATE TABLE `parliament_ingestion_source_run`");
             assertThat(sql).contains(
                     "CREATE VIEW `parliament_current_legislator`",
                     "CREATE VIEW `parliament_former_legislator`");
