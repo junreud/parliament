@@ -69,11 +69,24 @@ curl -X POST http://localhost:8080/admin/ingestion/parliament/preflight \
 
 - `parliament_person`: 인물의 현재 정규화 이름, 분류, 식별 상태
 - `parliament_person_identifier`: 열린국회정보 의원 ID 등 외부 식별자
+- `parliament_legislator_term`: 의원별 국회 대수 이력
+- `parliament_legislator_status`: 최신 공식 명부를 근거로 한 `CURRENT`/`FORMER` 상태
 - `parliament_person_position`: 출처 레코드에 근거한 직위·소속 관찰 이력
 - `parliament_social_account`: 플랫폼별 대표 URL과 검증 근거
 - `parliament_source_record`: 소스별 원문 JSON 및 내용 해시
 - `parliament_record_person`: 원문 레코드와 인물의 연결
 - `parliament_ingestion_checkpoint`: 소스별 다음 페이지와 완료 상태
+
+현역 의원은 `국회의원 인적사항` 최신 명부(`nwvrqwxyaytdsfvhu`)에 포함된 의원으로 판정합니다. 단순히 제22대 이력이 있다는 이유만으로 현역 처리하지 않습니다. 조회할 때는 `parliament_current_legislator`와 `parliament_former_legislator` 뷰를 사용합니다.
+
+기존 DB는 스키마 확장과 재분류를 분리해 적용합니다.
+
+```bash
+mariadb parliament < src/main/resources/sql/migrations/002-legislator-term-status-up.sql
+mariadb parliament < src/main/resources/sql/migrations/003-rebuild-legislator-classification.sql
+```
+
+재분류 SQL은 파생 테이블만 트랜잭션 안에서 다시 만들며 반복 실행할 수 있습니다. 최신 명부 API를 완전 적재한 뒤 실행해야 합니다.
 
 ## 검증
 

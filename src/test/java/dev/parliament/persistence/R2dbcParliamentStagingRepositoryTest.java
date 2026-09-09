@@ -159,6 +159,8 @@ class R2dbcParliamentStagingRepositoryTest {
                     new ClassPathResource("sql/migrations/002-legislator-term-status-up.sql"));
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("sql/migrations/003-rebuild-legislator-classification.sql"));
+            ScriptUtils.executeSqlScript(connection,
+                    new ClassPathResource("sql/migrations/003-rebuild-legislator-classification.sql"));
         }
 
         StepVerifier.create(text("""

@@ -1,3 +1,5 @@
+START TRANSACTION;
+
 DELETE FROM `parliament_legislator_status`;
 DELETE FROM `parliament_legislator_term`;
 
@@ -104,3 +106,5 @@ ON DUPLICATE KEY UPDATE
   evidence_source_key = VALUES(evidence_source_key),
   evidence_record_key = VALUES(evidence_record_key),
   classified_at = CURRENT_TIMESTAMP(6);
+
+COMMIT;
