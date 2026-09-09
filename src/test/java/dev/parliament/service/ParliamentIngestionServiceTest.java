@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.time.Clock;
@@ -231,7 +232,8 @@ class ParliamentIngestionServiceTest {
                 "m1", "hash", "{}", List.of());
         when(apiClient.fetch(source, 1, 10)).thenReturn(Mono.just(new OpenAssemblyPage(1, List.of(row))));
         when(normalizer.normalize(source, row)).thenReturn(normalized);
-        when(repository.saveChangedPage(source, List.of(normalized), 1, 1, true))
+        when(repository.saveChangedPage(
+                eq(source), eq(List.of(normalized)), eq(1), eq(1), eq(true), any(Instant.class)))
                 .thenReturn(Mono.just(new dev.parliament.persistence.ParliamentPageWriteResult(1, 0, 1)));
 
         StepVerifier.create(service(ParliamentSourceCatalog.of(List.of(source))).synchronize(

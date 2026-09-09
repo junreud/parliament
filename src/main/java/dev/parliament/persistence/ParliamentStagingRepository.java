@@ -27,7 +27,8 @@ public interface ParliamentStagingRepository
             List<NormalizedParliamentRecord> records,
             int currentPage,
             int nextPage,
-            boolean complete
+            boolean complete,
+            Instant snapshotMarker
     );
 
     Mono<Integer> finalizeSourceSnapshot(String sourceKey, Instant observedSince);

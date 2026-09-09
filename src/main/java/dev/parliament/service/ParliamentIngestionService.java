@@ -216,7 +216,7 @@ public class ParliamentIngestionService {
                                 .map(watermark -> parameterResolver.resolveChanged(source, watermark))
                                 .orElseGet(() -> parameterResolver.resolveAll(source)))
                         .concatMap(resolved -> repository.resetCheckpoint(source.key(), resolved.variantKey())
-                                .then(synchronizePage(resolved, 1, request, 0))
+                                .then(synchronizePage(resolved, 1, request, 0, observedSince))
                                 .onErrorResume(error -> Mono.just(VariantSyncReport.failed(error))))
                         .collectList()
                         .map(variants -> aggregateSync(
@@ -251,19 +251,21 @@ public class ParliamentIngestionService {
             ParliamentSourceDefinition source,
             int pageNumber,
             ParliamentIngestionRequest request,
-            int completedPages
+            int completedPages,
+            Instant snapshotMarker
     ) {
         return Mono.defer(() -> apiClient.fetch(source, pageNumber, request.pageSize())
                 .flatMap(page -> {
                     List<NormalizedParliamentRecord> records = normalize(source, page);
                     boolean complete = isComplete(page, pageNumber, request.pageSize());
                     int nextPage = complete ? pageNumber : pageNumber + 1;
-                    return repository.saveChangedPage(source, records, pageNumber, nextPage, complete)
+                    return repository.saveChangedPage(
+                                    source, records, pageNumber, nextPage, complete, snapshotMarker)
                             .flatMap(write -> {
                                 int pages = completedPages + 1;
                                 VariantSyncReport current = VariantSyncReport.of(write, 1, complete);
                                 if (!complete && pages < request.maxPages()) {
-                                    return synchronizePage(source, nextPage, request, pages)
+                                    return synchronizePage(source, nextPage, request, pages, snapshotMarker)
                                             .map(current::plus);
                                 }
                                 return Mono.just(current);

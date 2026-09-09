@@ -204,13 +204,16 @@ class R2dbcParliamentStagingRepositoryTest {
         NormalizedParliamentRecord original = new NormalizedParliamentRecord(
                 "bill-1", "1111111111111111111111111111111111111111", "{\"BILL_ID\":\"bill-1\"}", List.of());
 
-        StepVerifier.create(repository.saveChangedPage(firstVariant, List.of(original), 1, 1, true))
+        java.time.Instant snapshotMarker = java.time.Instant.parse("2030-01-01T00:00:00Z");
+        StepVerifier.create(repository.saveChangedPage(
+                        firstVariant, List.of(original), 1, 1, true, snapshotMarker))
                 .assertNext(result -> {
                     assertThat(result.changed()).isEqualTo(1);
                     assertThat(result.unchanged()).isZero();
                 })
                 .verifyComplete();
-        StepVerifier.create(repository.saveChangedPage(firstVariant, List.of(original), 1, 1, true))
+        StepVerifier.create(repository.saveChangedPage(
+                        firstVariant, List.of(original), 1, 1, true, snapshotMarker))
                 .assertNext(result -> {
                     assertThat(result.changed()).isZero();
                     assertThat(result.unchanged()).isEqualTo(1);
@@ -219,7 +222,8 @@ class R2dbcParliamentStagingRepositoryTest {
 
         NormalizedParliamentRecord changed = new NormalizedParliamentRecord(
                 "bill-1", "2222222222222222222222222222222222222222", "{\"BILL_ID\":\"bill-1\",\"x\":1}", List.of());
-        StepVerifier.create(repository.saveChangedPage(firstVariant, List.of(changed), 1, 1, true))
+        StepVerifier.create(repository.saveChangedPage(
+                        firstVariant, List.of(changed), 1, 1, true, snapshotMarker))
                 .assertNext(result -> assertThat(result.changed()).isEqualTo(1))
                 .verifyComplete();
         StepVerifier.create(repository.savePage(secondVariant, List.of(), 1, 1, true))

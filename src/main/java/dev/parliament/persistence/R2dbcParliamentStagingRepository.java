@@ -414,15 +414,18 @@ public class R2dbcParliamentStagingRepository implements ParliamentStagingReposi
             List<NormalizedParliamentRecord> records,
             int currentPage,
             int nextPage,
-            boolean complete
+            boolean complete,
+            Instant snapshotMarker
     ) {
         Mono<ParliamentPageWriteResult> work = Flux.fromIterable(records)
                 .concatMap(record -> payloadHash(source.key(), record.recordKey())
                         .map(record.payloadHash()::equals)
                         .defaultIfEmpty(false)
                         .flatMap(unchanged -> unchanged
-                                ? touchRecord(source.key(), record.recordKey()).thenReturn(false)
-                                : saveRecord(source, record).thenReturn(true)))
+                                ? touchRecord(source.key(), record.recordKey(), snapshotMarker).thenReturn(false)
+                                : saveRecord(source, record)
+                                        .then(touchRecord(source.key(), record.recordKey(), snapshotMarker))
+                                        .thenReturn(true)))
                 .collectList()
                 .flatMap(changes -> saveCheckpoint(
                                 source.key(), source.variantKey(), currentPage, nextPage, complete)
@@ -445,12 +448,13 @@ public class R2dbcParliamentStagingRepository implements ParliamentStagingReposi
                 .one();
     }
 
-    private Mono<Void> touchRecord(String sourceKey, String recordKey) {
+    private Mono<Void> touchRecord(String sourceKey, String recordKey, Instant snapshotMarker) {
         return databaseClient.sql("""
                         UPDATE parliament_source_record
-                        SET last_seen_at = CURRENT_TIMESTAMP(6)
+                        SET last_seen_at = :snapshotMarker
                         WHERE source_key = :sourceKey AND record_key = :recordKey
                         """)
+                .bind("snapshotMarker", snapshotMarker)
                 .bind("sourceKey", sourceKey)
                 .bind("recordKey", recordKey)
                 .fetch().rowsUpdated().then();
