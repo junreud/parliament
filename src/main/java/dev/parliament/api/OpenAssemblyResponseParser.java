@@ -10,6 +10,7 @@ import java.util.Map;
 
 public class OpenAssemblyResponseParser {
     private static final String SUCCESS_CODE = "INFO-000";
+    private static final String NO_DATA_CODE = "INFO-200";
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public OpenAssemblyPage parse(String apiCode, String body) {
@@ -23,6 +24,9 @@ public class OpenAssemblyResponseParser {
     public OpenAssemblyPage parse(String apiCode, JsonNode body) {
         JsonNode topLevelResult = body.path("RESULT");
         if (!topLevelResult.isMissingNode()) {
+            if (NO_DATA_CODE.equals(topLevelResult.path("CODE").asText())) {
+                return new OpenAssemblyPage(0, List.of());
+            }
             throw apiError(topLevelResult);
         }
 

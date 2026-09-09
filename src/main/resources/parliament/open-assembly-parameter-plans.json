@@ -836,8 +836,16 @@
     {
       "sourceKey": "namemberevent",
       "officialInfId": "OOWY4R001216HX11501",
-      "status": "UNRESOLVED",
-      "bindings": []
+      "status": "PARAMETERIZED",
+      "bindings": [
+        {
+          "parameter": "NAAS_CD",
+          "strategy": "SOURCE_FIELD",
+          "sourceKey": "nwvrqwxyaytdsfvhu",
+          "sourceField": "MONA_CD",
+          "sampleValue": "04T3751T"
+        }
+      ]
     },
     {
       "sourceKey": "vconfbudgetconflist",

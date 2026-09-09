@@ -21,10 +21,12 @@ import reactor.test.StepVerifier;
 
 import java.util.List;
 import java.util.Map;
+import java.time.Clock;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
@@ -50,6 +52,13 @@ class ParliamentIngestionServiceTest {
         properties = new ParliamentIngestionProperties();
         lenient().when(parameterResolver.resolveSample(any()))
                 .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
+        lenient().when(parameterResolver.resolveAll(any()))
+                .thenAnswer(invocation -> reactor.core.publisher.Flux.just(
+                        (ParliamentSourceDefinition) invocation.getArgument(0)));
+        lenient().when(repository.lastSuccessfulSyncAt(anyString())).thenReturn(Mono.empty());
+        lenient().when(repository.markSourceSyncStarted(anyString(), any())).thenReturn(Mono.empty());
+        lenient().when(repository.markSourceSyncCompleted(anyString(), any(), any())).thenReturn(Mono.empty());
+        lenient().when(repository.markSourceSyncFailed(anyString(), any(), anyString())).thenReturn(Mono.empty());
     }
 
     @Test
@@ -68,7 +77,7 @@ class ParliamentIngestionServiceTest {
                 .verifyComplete();
 
         verify(repository, never()).savePage(any(), any(), anyInt(), anyInt(), anyBoolean());
-        verify(repository, never()).checkpoint(any());
+        verify(repository, never()).checkpoint(any(), any());
     }
 
     @Test
@@ -136,7 +145,7 @@ class ParliamentIngestionServiceTest {
         NormalizedParliamentRecord normalized = new NormalizedParliamentRecord(
                 "m1", "hash", "{}", List.of());
         properties.setWriteEnabled(true);
-        when(repository.checkpoint(source.key())).thenReturn(Mono.just(
+        when(repository.checkpoint(source.key(), source.variantKey())).thenReturn(Mono.just(
                 new ParliamentIngestionCheckpoint(1, false)));
         when(apiClient.fetch(source, 1, 1)).thenReturn(Mono.just(new OpenAssemblyPage(10, List.of(row))));
         when(normalizer.normalize(source, row)).thenReturn(normalized);
@@ -160,7 +169,7 @@ class ParliamentIngestionServiceTest {
     void completedCheckpointSkipsExternalApiAndDatabaseWrites() {
         ParliamentSourceCatalog catalog = ParliamentSourceCatalog.of(List.of(source));
         properties.setWriteEnabled(true);
-        when(repository.checkpoint(source.key())).thenReturn(Mono.just(
+        when(repository.checkpoint(source.key(), source.variantKey())).thenReturn(Mono.just(
                 new ParliamentIngestionCheckpoint(5, true)));
 
         StepVerifier.create(service(catalog).run(
@@ -173,8 +182,62 @@ class ParliamentIngestionServiceTest {
         verify(repository, never()).savePage(any(), any(), anyInt(), anyInt(), anyBoolean());
     }
 
+
+    @Test
+    void runIngestsEveryResolvedParameterVariantWithAnIndependentCheckpoint() {
+        ParliamentSourceDefinition unresolved = new ParliamentSourceDefinition(
+                "allbill", "allbill", "의안 상세", null,
+                ParliamentMediaType.DATA, ParliamentCollectionMode.PAGE, Map.of());
+        ParliamentSourceDefinition first = unresolved.withFixedParams(Map.of("BILL_NO", "2200001"));
+        ParliamentSourceDefinition second = unresolved.withFixedParams(Map.of("BILL_NO", "2200002"));
+        properties.setWriteEnabled(true);
+        when(parameterResolver.resolveAll(unresolved)).thenReturn(reactor.core.publisher.Flux.just(first, second));
+        when(repository.checkpoint(unresolved.key(), first.variantKey())).thenReturn(Mono.empty());
+        when(repository.checkpoint(unresolved.key(), second.variantKey())).thenReturn(Mono.empty());
+        when(apiClient.fetch(first, 1, 10)).thenReturn(Mono.just(new OpenAssemblyPage(0, List.of())));
+        when(apiClient.fetch(second, 1, 10)).thenReturn(Mono.just(new OpenAssemblyPage(0, List.of())));
+        when(repository.savePage(first, List.of(), 1, 1, true)).thenReturn(Mono.empty());
+        when(repository.savePage(second, List.of(), 1, 1, true)).thenReturn(Mono.empty());
+
+        StepVerifier.create(service(ParliamentSourceCatalog.of(List.of(unresolved))).run(
+                        new ParliamentIngestionRequest(List.of("allbill"), 10, 1, true)))
+                .assertNext(report -> assertThat(report.sources()).singleElement().satisfies(done -> {
+                    assertThat(done.pages()).isEqualTo(2);
+                    assertThat(done.complete()).isTrue();
+                }))
+                .verifyComplete();
+
+        verify(apiClient).fetch(first, 1, 10);
+        verify(apiClient).fetch(second, 1, 10);
+    }
+
+    @Test
+    void synchronizeRestartsAtPageOneAndReportsOnlyChangedRows() {
+        properties.setWriteEnabled(true);
+        when(repository.resetCheckpoint(source.key(), source.variantKey())).thenReturn(Mono.empty());
+        Map<String, Object> row = Map.of("NAAS_CD", "m1", "NAAS_NM", "홍길동");
+        NormalizedParliamentRecord normalized = new NormalizedParliamentRecord(
+                "m1", "hash", "{}", List.of());
+        when(apiClient.fetch(source, 1, 10)).thenReturn(Mono.just(new OpenAssemblyPage(1, List.of(row))));
+        when(normalizer.normalize(source, row)).thenReturn(normalized);
+        when(repository.saveChangedPage(source, List.of(normalized), 1, 1, true))
+                .thenReturn(Mono.just(new dev.parliament.persistence.ParliamentPageWriteResult(1, 0, 1)));
+
+        StepVerifier.create(service(ParliamentSourceCatalog.of(List.of(source))).synchronize(
+                        new ParliamentIngestionRequest(List.of(source.key()), 10, 1, true)))
+                .assertNext(report -> assertThat(report.sources()).singleElement().satisfies(sync -> {
+                    assertThat(sync.scanned()).isEqualTo(1);
+                    assertThat(sync.changed()).isZero();
+                    assertThat(sync.unchanged()).isEqualTo(1);
+                }))
+                .verifyComplete();
+
+        verify(repository).resetCheckpoint(source.key(), source.variantKey());
+    }
+
     private ParliamentIngestionService service(ParliamentSourceCatalog catalog) {
         return new ParliamentIngestionService(
-                apiClient, repository, normalizer, catalog, properties, parameterResolver);
+                apiClient, repository, normalizer, catalog, properties, parameterResolver,
+                Clock.systemUTC());
     }
 }

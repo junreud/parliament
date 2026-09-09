@@ -14,6 +14,7 @@ import reactor.test.StepVerifier;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -97,6 +98,33 @@ class WebClientParliamentApiClientTest {
         StepVerifier.create(client.fetch(source, 1, 100))
                 .expectNextMatches(page -> page.rows().size() == 1)
                 .verifyComplete();
+    }
+
+    @Test
+    void retriesTransientServerFailuresBeforeReturningThePage() {
+        AtomicInteger attempts = new AtomicInteger();
+        WebClient webClient = WebClient.builder().exchangeFunction(request -> {
+            if (attempts.incrementAndGet() < 3) {
+                return Mono.just(ClientResponse.create(HttpStatus.SERVICE_UNAVAILABLE).build());
+            }
+            return Mono.just(ClientResponse.create(HttpStatus.OK)
+                    .body("""
+                            {"ALLSCHEDULE":[
+                              {"head":[{"list_total_count":0},{"RESULT":{"CODE":"INFO-000","MESSAGE":"OK"}}]}
+                            ]}
+                            """)
+                    .build());
+        }).build();
+        WebClientParliamentApiClient client = new WebClientParliamentApiClient(
+                webClient, properties("test-key"), new OpenAssemblyResponseParser());
+        ParliamentSourceDefinition source = new ParliamentSourceDefinition(
+                "schedule", "ALLSCHEDULE", "일정", null,
+                ParliamentMediaType.DATA, ParliamentCollectionMode.PAGE, Map.of());
+
+        StepVerifier.create(client.fetch(source, 1, 10))
+                .expectNextMatches(page -> page.rows().isEmpty())
+                .verifyComplete();
+        assertThat(attempts).hasValue(3);
     }
 
     private ParliamentIngestionProperties properties(String apiKey) {

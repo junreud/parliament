@@ -15,4 +15,13 @@ parliament:
     max-page-size: ${PARLIAMENT_INGESTION_MAX_PAGE_SIZE:100}
     max-pages-per-run: ${PARLIAMENT_INGESTION_MAX_PAGES_PER_RUN:1000}
     current-assembly-number: ${PARLIAMENT_CURRENT_ASSEMBLY_NUMBER:22}
+    automatic-enabled: ${PARLIAMENT_AUTOMATIC_SYNC_ENABLED:false}
+    incremental-cron: ${PARLIAMENT_INCREMENTAL_CRON:0 0 4 * * *}
+    incremental-zone: ${PARLIAMENT_INCREMENTAL_ZONE:Asia/Seoul}
+    incremental-page-size: ${PARLIAMENT_INCREMENTAL_PAGE_SIZE:100}
+    incremental-max-pages: ${PARLIAMENT_INCREMENTAL_MAX_PAGES:1000}
+    social-verification-enabled: ${PARLIAMENT_SOCIAL_VERIFICATION_ENABLED:true}
+    social-verification-max-age-days: ${PARLIAMENT_SOCIAL_VERIFICATION_MAX_AGE_DAYS:7}
+    social-verification-batch-size: ${PARLIAMENT_SOCIAL_VERIFICATION_BATCH_SIZE:200}
     base-url: https://open.assembly.go.kr/portal/openapi
+    ca-certificate-path: ${PARLIAMENT_OPEN_ASSEMBLY_CA_CERTIFICATE:}

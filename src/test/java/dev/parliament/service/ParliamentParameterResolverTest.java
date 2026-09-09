@@ -84,11 +84,42 @@ class ParliamentParameterResolverTest {
     }
 
     @Test
-    void reportsUndocumentedRequiredParameterInsteadOfGuessing() {
+    void expandsEveryDependentIdentifierForRealIngestion() {
+        when(valueRepository.distinctRawValues("billrcp", "BILL_NO", 100_000))
+                .thenReturn(Flux.just("2200001", "2200002", "2200003"));
+
+        StepVerifier.create(resolver.resolveAll(source("allbill")))
+                .assertNext(resolved -> assertThat(resolved.fixedParams())
+                        .containsEntry("BILL_NO", "2200001"))
+                .assertNext(resolved -> assertThat(resolved.fixedParams())
+                        .containsEntry("BILL_NO", "2200002"))
+                .assertNext(resolved -> assertThat(resolved.fixedParams())
+                        .containsEntry("BILL_NO", "2200003"))
+                .verifyComplete();
+    }
+
+    @Test
+    void expandsOnlyParentIdentifiersChangedAfterTheLastSuccessfulSync() {
+        Instant watermark = Instant.parse("2026-09-08T00:00:00Z");
+        when(valueRepository.distinctRawValuesChangedSince(
+                "billrcp", "BILL_NO", watermark, 100_000))
+                .thenReturn(Flux.just("2200003"));
+
+        StepVerifier.create(resolver.resolveChanged(source("allbill"), watermark))
+                .assertNext(resolved -> assertThat(resolved.fixedParams())
+                        .containsEntry("BILL_NO", "2200003"))
+                .verifyComplete();
+    }
+
+    @Test
+    void resolvesTheEmpiricallyVerifiedMemberCodeForTheBrokenEventSpecification() {
+        when(valueRepository.distinctRawValues("nwvrqwxyaytdsfvhu", "MONA_CD", 1))
+                .thenReturn(Flux.just("04T3751T"));
+
         StepVerifier.create(resolver.resolveSample(source("namemberevent")))
-                .expectErrorMatches(error -> error instanceof IllegalStateException
-                        && error.getMessage().contains("unresolved parameter contract"))
-                .verify();
+                .assertNext(resolved -> assertThat(resolved.fixedParams())
+                        .containsEntry("NAAS_CD", "04T3751T"))
+                .verifyComplete();
     }
 
     private ParliamentSourceDefinition source(String key) {

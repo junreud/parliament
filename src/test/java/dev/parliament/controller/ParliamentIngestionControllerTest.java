@@ -4,6 +4,8 @@ import dev.parliament.config.ParliamentIngestionProperties;
 import dev.parliament.service.ParliamentIngestionReport;
 import dev.parliament.service.ParliamentIngestionRequest;
 import dev.parliament.service.ParliamentIngestionService;
+import dev.parliament.service.ParliamentSocialVerificationService;
+import dev.parliament.service.ParliamentJobGuard;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +17,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.List;
+import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
@@ -23,6 +26,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ParliamentIngestionControllerTest {
     @Mock private ParliamentIngestionService service;
+    @Mock private ParliamentSocialVerificationService socialVerificationService;
 
     private ParliamentIngestionController controller;
     private ParliamentIngestionRequest request;
@@ -31,7 +35,8 @@ class ParliamentIngestionControllerTest {
     void setUp() {
         ParliamentIngestionProperties properties = new ParliamentIngestionProperties();
         properties.setAdminKey("admin-key");
-        controller = new ParliamentIngestionController(service, properties);
+        controller = new ParliamentIngestionController(
+                service, socialVerificationService, new ParliamentJobGuard(), properties);
         request = new ParliamentIngestionRequest(List.of("allnamember"), 10, 1, false);
     }
 
@@ -80,5 +85,26 @@ class ParliamentIngestionControllerTest {
                 .verify();
 
         firstRun.dispose();
+    }
+
+    @Test
+    void exposesManualIncrementalSyncAndSocialVerificationBehindTheAdminKey() {
+        ParliamentIngestionRequest syncRequest = new ParliamentIngestionRequest(
+                List.of("allnamember"), 10, 1, true);
+        var syncReport = new dev.parliament.service.ParliamentSyncReport(
+                Instant.EPOCH, Instant.EPOCH, List.of());
+        when(service.synchronize(syncRequest)).thenReturn(Mono.just(syncReport));
+        when(socialVerificationService.verifyDue(java.time.Duration.ofDays(7), 20))
+                .thenReturn(Mono.just(12));
+
+        StepVerifier.create(controller.synchronize("admin-key", syncRequest))
+                .expectNext(syncReport)
+                .verifyComplete();
+        StepVerifier.create(controller.verifySocial("admin-key", 7, 20))
+                .expectNext(12)
+                .verifyComplete();
+
+        verify(service).synchronize(syncRequest);
+        verify(socialVerificationService).verifyDue(java.time.Duration.ofDays(7), 20);
     }
 }

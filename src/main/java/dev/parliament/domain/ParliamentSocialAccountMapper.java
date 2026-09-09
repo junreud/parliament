@@ -29,15 +29,23 @@ public class ParliamentSocialAccountMapper {
     );
 
     public List<SocialAccount> map(Map<String, Object> row) {
+        return map(row, false);
+    }
+
+    public List<SocialAccount> map(Map<String, Object> row, boolean officialDirectorySource) {
         Map<SocialPlatform, SocialAccount> accounts = new LinkedHashMap<>();
         FIELD_PLATFORMS.forEach(mapping -> Optional.ofNullable(row.get(mapping.field()))
                 .map(Object::toString)
-                .flatMap(value -> canonicalize(mapping.platform(), value))
+                .flatMap(value -> canonicalize(mapping.platform(), value, officialDirectorySource))
                 .ifPresent(account -> accounts.putIfAbsent(account.platform(), account)));
         return List.copyOf(accounts.values());
     }
 
-    private Optional<SocialAccount> canonicalize(SocialPlatform platform, String rawValue) {
+    private Optional<SocialAccount> canonicalize(
+            SocialPlatform platform,
+            String rawValue,
+            boolean officialDirectorySource
+    ) {
         String raw = rawValue == null ? "" : rawValue.trim();
         if (raw.isBlank()) {
             return Optional.empty();
@@ -66,7 +74,9 @@ public class ParliamentSocialAccountMapper {
                     canonicalUrl,
                     handle.isBlank() ? null : handle,
                     true,
-                    SocialVerificationStatus.OFFICIAL_DIRECTORY
+                    officialDirectorySource
+                            ? SocialVerificationStatus.OFFICIAL_DIRECTORY
+                            : SocialVerificationStatus.UNVERIFIED
             ));
         } catch (URISyntaxException error) {
             return Optional.empty();

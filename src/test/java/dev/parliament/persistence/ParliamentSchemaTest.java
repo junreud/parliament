@@ -22,11 +22,13 @@ class ParliamentSchemaTest {
                     "CREATE TABLE `parliament_social_account`",
                     "CREATE TABLE `parliament_source_record`",
                     "CREATE TABLE `parliament_record_person`",
-                    "CREATE TABLE `parliament_ingestion_checkpoint`");
+                    "CREATE TABLE `parliament_ingestion_checkpoint`",
+                    "CREATE TABLE `parliament_source_sync_state`");
             assertThat(sql).contains(
                     "CREATE VIEW `parliament_current_legislator`",
                     "CREATE VIEW `parliament_former_legislator`");
             assertThat(sql).contains("`raw_payload` json NOT NULL");
+            assertThat(sql).contains("`content_changed_at` timestamp(6)");
             assertThat(sql).doesNotContain("api_key", "service_key", "password");
         }
     }

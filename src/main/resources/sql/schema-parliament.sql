@@ -62,6 +62,12 @@ CREATE TABLE `parliament_social_account` (
   `handle` varchar(255) DEFAULT NULL,
   `is_primary` boolean NOT NULL DEFAULT true,
   `verification_status` varchar(32) NOT NULL,
+  `official_evidence_source_key` varchar(100) DEFAULT NULL,
+  `url_verification_status` varchar(32) NOT NULL DEFAULT 'UNCHECKED',
+  `url_http_status` smallint unsigned DEFAULT NULL,
+  `resolved_url` varchar(1024) DEFAULT NULL,
+  `url_verification_error` varchar(100) DEFAULT NULL,
+  `last_url_verified_at` timestamp(6) DEFAULT NULL,
   `last_seen_at` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
   PRIMARY KEY (`identity_key`, `platform`, `url_hash`),
   KEY `idx_parliament_social_url` (`canonical_url`(255))
@@ -75,6 +81,7 @@ CREATE TABLE `parliament_source_record` (
   `payload_hash` char(40) NOT NULL,
   `raw_payload` json NOT NULL,
   `first_seen_at` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  `content_changed_at` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
   `last_seen_at` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
   PRIMARY KEY (`source_key`, `record_key`)
 );
@@ -89,12 +96,25 @@ CREATE TABLE `parliament_record_person` (
 
 CREATE TABLE `parliament_ingestion_checkpoint` (
   `source_key` varchar(100) NOT NULL,
+  `variant_key` varchar(40) NOT NULL DEFAULT 'default',
   `next_page` int NOT NULL DEFAULT 1,
   `complete` boolean NOT NULL DEFAULT false,
   `last_page` int DEFAULT NULL,
   `last_success_at` timestamp(6) DEFAULT NULL,
   `updated_at` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
-  PRIMARY KEY (`source_key`)
+  PRIMARY KEY (`source_key`, `variant_key`)
+);
+
+CREATE TABLE `parliament_source_sync_state` (
+  `source_key` varchar(100) NOT NULL,
+  `status` varchar(16) NOT NULL,
+  `last_started_at` timestamp(6) DEFAULT NULL,
+  `last_finished_at` timestamp(6) DEFAULT NULL,
+  `last_successful_watermark` timestamp(6) DEFAULT NULL,
+  `last_error_code` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`source_key`),
+  CONSTRAINT `chk_parliament_source_sync_status`
+    CHECK (`status` IN ('RUNNING', 'COMPLETE', 'FAILED'))
 );
 
 CREATE VIEW `parliament_current_legislator` AS

@@ -10,6 +10,7 @@ import dev.parliament.domain.PersonResolutionStatus;
 import dev.parliament.domain.SocialAccount;
 import dev.parliament.domain.SocialPlatform;
 import dev.parliament.domain.SocialVerificationStatus;
+import dev.parliament.domain.SocialUrlVerificationStatus;
 import io.r2dbc.spi.ConnectionFactories;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -73,6 +74,7 @@ class R2dbcParliamentStagingRepositoryTest {
     void setUp() throws Exception {
         try (var connection = DriverManager.getConnection(
                 jdbcUrl, username, password)) {
+            ScriptUtils.executeSqlScript(connection, new ClassPathResource("sql/reset-parliament.sql"));
             ScriptUtils.executeSqlScript(connection, new ClassPathResource("sql/schema-parliament.sql"));
         }
         var connectionFactory = ConnectionFactories.get(r2dbcUrl);
@@ -99,7 +101,7 @@ class R2dbcParliamentStagingRepositoryTest {
                 "{\"NAAS_CD\":\"A001\",\"GTELT_ERACO\":\"제21대, 제22대\"}", List.of(person));
 
         StepVerifier.create(repository.savePage(source, List.of(record), 1, 2, false)
-                        .then(repository.checkpoint(source.key())))
+                        .then(repository.checkpoint(source.key(), source.variantKey())))
                 .expectNextMatches(checkpoint -> checkpoint.nextPage() == 2 && !checkpoint.complete())
                 .verifyComplete();
 
@@ -122,7 +124,7 @@ class R2dbcParliamentStagingRepositoryTest {
                 "{\"NAAS_CD\":\"A001\",\"SEQ\":2}", List.of(updatedPerson));
 
         StepVerifier.create(repository.savePage(source, List.of(secondRecord), 2, 2, true)
-                        .then(repository.checkpoint(source.key())))
+                        .then(repository.checkpoint(source.key(), source.variantKey())))
                 .expectNextMatches(checkpoint -> checkpoint.complete() && checkpoint.nextPage() == 2)
                 .verifyComplete();
         StepVerifier.create(databaseClient.sql("""
@@ -157,11 +159,11 @@ class R2dbcParliamentStagingRepositoryTest {
         try (var connection = DriverManager.getConnection(jdbcUrl, username, password)) {
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("sql/migrations/002-legislator-term-status-up.sql"));
-            ScriptUtils.executeSqlScript(connection,
-                    new ClassPathResource("sql/migrations/003-rebuild-legislator-classification.sql"));
-            ScriptUtils.executeSqlScript(connection,
-                    new ClassPathResource("sql/migrations/003-rebuild-legislator-classification.sql"));
         }
+        StepVerifier.create(repository.finalizeSourceSnapshot(
+                        currentRoster.key(), java.time.Instant.EPOCH))
+                .expectNext(0)
+                .verifyComplete();
 
         StepVerifier.create(text("""
                         SELECT membership_status
@@ -186,6 +188,110 @@ class R2dbcParliamentStagingRepositoryTest {
                 .verifyComplete();
         StepVerifier.create(count("parliament_former_legislator"))
                 .expectNext(1L)
+                .verifyComplete();
+    }
+
+    @Test
+    void incrementalPageWritesOnlyNewOrChangedPayloadsAndKeepsVariantCheckpointsSeparate() {
+        ParliamentSourceDefinition firstVariant = new ParliamentSourceDefinition(
+                "allbill", "allbill", "의안 상세", null,
+                ParliamentMediaType.DATA, ParliamentCollectionMode.PAGE, Map.of("BILL_NO", "1"));
+        ParliamentSourceDefinition secondVariant = firstVariant.withFixedParams(Map.of("BILL_NO", "2"));
+        NormalizedParliamentRecord original = new NormalizedParliamentRecord(
+                "bill-1", "1111111111111111111111111111111111111111", "{\"BILL_ID\":\"bill-1\"}", List.of());
+
+        StepVerifier.create(repository.saveChangedPage(firstVariant, List.of(original), 1, 1, true))
+                .assertNext(result -> {
+                    assertThat(result.changed()).isEqualTo(1);
+                    assertThat(result.unchanged()).isZero();
+                })
+                .verifyComplete();
+        StepVerifier.create(repository.saveChangedPage(firstVariant, List.of(original), 1, 1, true))
+                .assertNext(result -> {
+                    assertThat(result.changed()).isZero();
+                    assertThat(result.unchanged()).isEqualTo(1);
+                })
+                .verifyComplete();
+
+        NormalizedParliamentRecord changed = new NormalizedParliamentRecord(
+                "bill-1", "2222222222222222222222222222222222222222", "{\"BILL_ID\":\"bill-1\",\"x\":1}", List.of());
+        StepVerifier.create(repository.saveChangedPage(firstVariant, List.of(changed), 1, 1, true))
+                .assertNext(result -> assertThat(result.changed()).isEqualTo(1))
+                .verifyComplete();
+        StepVerifier.create(repository.savePage(secondVariant, List.of(), 1, 1, true))
+                .verifyComplete();
+
+        StepVerifier.create(countWhere("parliament_ingestion_checkpoint", "source_key = 'allbill'"))
+                .expectNext(2L)
+                .verifyComplete();
+        StepVerifier.create(repository.distinctRawValuesChangedSince(
+                        "allbill", "BILL_ID", java.time.Instant.EPOCH, 10))
+                .expectNext("bill-1")
+                .verifyComplete();
+
+        java.time.Instant started = java.time.Instant.parse("2026-09-09T00:00:00Z");
+        java.time.Instant finished = java.time.Instant.parse("2026-09-09T00:01:00Z");
+        StepVerifier.create(repository.markSourceSyncStarted("allbill", started)
+                        .then(repository.markSourceSyncCompleted("allbill", started, finished))
+                        .then(repository.lastSuccessfulSyncAt("allbill")))
+                .expectNext(started)
+                .verifyComplete();
+    }
+
+    @Test
+    void storesOfficialDirectoryEvidenceSeparatelyFromUrlHealth() {
+        ParliamentSourceDefinition officialDirectory = new ParliamentSourceDefinition(
+                "negnlnyvatsjwocar", "negnlnyvatsjwocar", "국회의원 SNS", null,
+                ParliamentMediaType.DATA, ParliamentCollectionMode.PAGE, Map.of());
+        SocialAccount social = new SocialAccount(
+                SocialPlatform.X, "https://x.com/member", "member", true,
+                SocialVerificationStatus.OFFICIAL_DIRECTORY);
+        PersonCandidate person = new PersonCandidate(
+                "assembly-member:a100", "홍길동", PersonKind.LEGISLATOR, "A100",
+                "국회의원", "대한민국 국회", PersonResolutionStatus.VERIFIED_EXTERNAL_ID,
+                List.of(social));
+        NormalizedParliamentRecord record = new NormalizedParliamentRecord(
+                "A100", "3333333333333333333333333333333333333333", "{\"MONA_CD\":\"A100\"}", List.of(person));
+        StepVerifier.create(repository.savePage(officialDirectory, List.of(record), 1, 1, true))
+                .verifyComplete();
+
+        StepVerifier.create(repository.findDue(java.time.Instant.parse("2026-09-09T00:00:00Z"), 10))
+                .assertNext(target -> assertThat(target.canonicalUrl()).isEqualTo("https://x.com/member"))
+                .verifyComplete();
+        SocialAccountVerificationTarget target = new SocialAccountVerificationTarget(
+                "assembly-member:a100", SocialPlatform.X, dev.parliament.util.TextUtil.textSha1("https://x.com/member"),
+                "https://x.com/member");
+        SocialAccountVerification verification = new SocialAccountVerification(
+                target, SocialUrlVerificationStatus.REACHABLE, 200,
+                "https://x.com/member", null, java.time.Instant.parse("2026-09-09T01:00:00Z"));
+        StepVerifier.create(repository.saveVerification(verification)).verifyComplete();
+
+        StepVerifier.create(databaseClient.sql("""
+                        SELECT CONCAT(verification_status, ':', official_evidence_source_key, ':', url_verification_status)
+                          AS verification_value
+                        FROM parliament_social_account
+                        WHERE identity_key = 'assembly-member:a100'
+                        """)
+                .map((row, metadata) -> row.get("verification_value", String.class)).one())
+                .expectNext("OFFICIAL_DIRECTORY:negnlnyvatsjwocar:REACHABLE")
+                .verifyComplete();
+
+        StepVerifier.create(databaseClient.sql("""
+                        UPDATE parliament_source_record
+                        SET last_seen_at = '2020-01-01 00:00:00'
+                        WHERE source_key = 'negnlnyvatsjwocar' AND record_key = 'A100'
+                        """).fetch().rowsUpdated()).expectNext(1L).verifyComplete();
+        StepVerifier.create(repository.finalizeSourceSnapshot(
+                        "negnlnyvatsjwocar", java.time.Instant.parse("2021-01-01T00:00:00Z")))
+                .expectNext(1)
+                .verifyComplete();
+        StepVerifier.create(databaseClient.sql("""
+                        SELECT verification_status
+                        FROM parliament_social_account
+                        WHERE identity_key = 'assembly-member:a100'
+                        """)
+                .map((row, metadata) -> row.get("verification_status", String.class)).one())
+                .expectNext("UNVERIFIED")
                 .verifyComplete();
     }
 

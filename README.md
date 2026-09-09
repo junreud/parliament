@@ -8,8 +8,10 @@
 - 일반 데이터 269개는 사전 점검 및 페이지 적재 대상입니다.
 - 영상 관련 3개 API는 `VIDEO / EXCLUDED`로 고정해 호출과 적재에서 제외합니다.
 - 모든 응답 행의 원문 JSON과 해시를 보존하고, 체크포인트로 중단 지점부터 재개합니다.
+- 추가 파라미터 때문에 미수집이던 82개 API는 72개 파라미터형, 7개 정상 빈 결과형, 3개 재시도형으로 분류했습니다. 파라미터형은 현재 국회 대수 등 정적 값 53개와 선행 API 식별자 연계형 19개로 나뉩니다.
 - 구조화된 인물 필드에서 국회의원, 정부 공직자, 기타 인물 후보를 분류합니다.
 - 국회가 제공한 SNS 필드를 X, YouTube, 네이버 블로그, Facebook, Instagram, Threads, TikTok, Telegram의 정규 URL로 매핑합니다.
+- SNS는 국회 공식 디렉터리 수록 여부와 현재 URL 도달 여부를 별도 상태로 보존합니다.
 - 외부 키가 확인된 국회의원만 확정 식별자로 병합합니다. 이름만 있는 사람은 자동 병합하지 않고 `PROVISIONAL_NAME_MATCH`로 둡니다.
 
 ### 인물 분류 원칙
@@ -30,7 +32,7 @@
 2. `PARLIAMENT_INGESTION_WRITE_ENABLED=true`
 3. `/run` 요청 본문의 `confirmWrite=true`
 
-사전 점검(`/preflight`)은 외부 API 한 페이지만 읽고 DB에는 쓰지 않습니다. API 키와 관리 키는 환경변수로만 주입하며 저장소·응답·로그에 기록하지 않습니다. HTTP 클라이언트는 `https://open.assembly.go.kr`만 허용합니다.
+사전 점검(`/preflight`)은 외부 API 한 페이지만 읽고 DB에는 쓰지 않습니다. API 키와 관리 키는 환경변수로만 주입하며 저장소·응답·로그에 기록하지 않습니다. 국회 API 클라이언트는 `https://open.assembly.go.kr`만 허용합니다. 사내 HTTPS 검사 환경에서는 `PARLIAMENT_OPEN_ASSEMBLY_CA_CERTIFICATE`에 로컬 CA PEM 경로를 지정할 수 있으며, 파일 자체는 저장소에 넣지 않습니다.
 
 ## 로컬 준비
 
@@ -61,9 +63,23 @@ curl -X POST http://localhost:8080/admin/ingestion/parliament/preflight \
 
 `sourceKeys`를 빈 배열로 보내면 영상 제외 후 활성화된 전체 카탈로그를 대상으로 합니다. 처음에는 의원 기본정보 `allnamember`와 SNS `negnlnyvatsjwocar`처럼 작은 묶음으로 확인하는 것을 권장합니다.
 
-## 실제 적재 직전의 마지막 단계
+## 적재와 증분 동기화
 
-실제 적재는 이 구현 작업에서 실행하지 않습니다. 실행하려면 운영자가 직접 쓰기 플래그를 켜고 애플리케이션을 다시 시작한 다음 `/admin/ingestion/parliament/run`에 `confirmWrite=true`를 보내야 합니다. 페이지 단위 트랜잭션이 성공한 뒤에만 체크포인트가 이동합니다.
+최초 적재 또는 중단 지점 재개는 `/admin/ingestion/parliament/run`을 사용합니다. 페이지 단위 트랜잭션이 성공한 뒤에만 파라미터 조합별 체크포인트가 이동합니다.
+
+이미 적재된 소스의 갱신은 `/admin/ingestion/parliament/sync`를 사용합니다. 원문 해시가 같은 행은 인물·직위·SNS를 다시 쓰지 않고 관찰 시각만 갱신합니다. 해시가 달라진 행과 새 행만 정규화 데이터를 갱신합니다. `BILL_ID`, `CONF_ID`, `NAAS_CD` 같은 선행 식별자를 요구하는 하위 API는 첫 실행에는 전체 식별자를 처리하고, 다음 실행부터는 부모 레코드가 마지막 성공 워터마크 이후 바뀐 식별자만 처리합니다.
+
+일부 국회 API는 `modified-since` 조건을 제공하지 않으므로 변경 여부를 확인하기 위한 페이지 읽기는 필요합니다. 이 경우에도 DB의 원문·정규화 재적재는 변경 행으로 제한됩니다. 최신 의원 명부와 공식 SNS 명부는 완전 스냅샷으로 취급해 사라진 원문을 정리하고, 현역/전직 분류도 같은 트랜잭션 흐름에서 다시 계산합니다.
+
+자동 실행은 기본적으로 꺼져 있습니다. 아래 환경변수를 켜면 매일 새벽 4시(기본값)에 증분 동기화 후 오래된 SNS 검증 결과를 갱신합니다.
+
+```bash
+PARLIAMENT_AUTOMATIC_SYNC_ENABLED=true
+PARLIAMENT_INCREMENTAL_CRON='0 0 4 * * *'
+PARLIAMENT_INCREMENTAL_ZONE='Asia/Seoul'
+```
+
+SNS만 수동 확인하려면 `POST /admin/ingestion/parliament/social/verify?maxAgeDays=7&limit=200`을 호출합니다. URL 검증은 SNS별 HTTPS 허용 도메인과 안전한 리다이렉트만 따라가며, `REACHABLE`, `REDIRECTED`, `NOT_FOUND`, `REJECTED`, `TEMPORARY_FAILURE`로 기록합니다. `OFFICIAL_DIRECTORY`는 국회 명부에 수록됐다는 출처 증거이며 플랫폼의 유료 인증 배지를 의미하지 않습니다.
 
 ## 데이터 모델
 
@@ -76,6 +92,7 @@ curl -X POST http://localhost:8080/admin/ingestion/parliament/preflight \
 - `parliament_source_record`: 소스별 원문 JSON 및 내용 해시
 - `parliament_record_person`: 원문 레코드와 인물의 연결
 - `parliament_ingestion_checkpoint`: 소스별 다음 페이지와 완료 상태
+- `parliament_source_sync_state`: 소스별 자동 갱신 상태와 마지막 성공 워터마크
 
 현역 의원은 `국회의원 인적사항` 최신 명부(`nwvrqwxyaytdsfvhu`)에 포함된 의원으로 판정합니다. 단순히 제22대 이력이 있다는 이유만으로 현역 처리하지 않습니다. 조회할 때는 `parliament_current_legislator`와 `parliament_former_legislator` 뷰를 사용합니다.
 
@@ -84,6 +101,9 @@ curl -X POST http://localhost:8080/admin/ingestion/parliament/preflight \
 ```bash
 mariadb parliament < src/main/resources/sql/migrations/002-legislator-term-status-up.sql
 mariadb parliament < src/main/resources/sql/migrations/003-rebuild-legislator-classification.sql
+mariadb parliament < src/main/resources/sql/migrations/004-parameter-variant-checkpoint-up.sql
+mariadb parliament < src/main/resources/sql/migrations/005-social-account-verification-up.sql
+mariadb parliament < src/main/resources/sql/migrations/006-incremental-watermark-up.sql
 ```
 
 재분류 SQL은 파생 테이블만 트랜잭션 안에서 다시 만들며 반복 실행할 수 있습니다. 최신 명부 API를 완전 적재한 뒤 실행해야 합니다.
@@ -94,7 +114,7 @@ mariadb parliament < src/main/resources/sql/migrations/003-rebuild-legislator-cl
 ./gradlew test
 ```
 
-테스트는 영상 제외, 인물 분류, SNS URL 허용목록, API 애플리케이션 오류 처리, dry-run 무쓰기, 이중 쓰기 잠금, 실제 MySQL 스키마·트랜잭션·체크포인트를 확인합니다. Docker 엔진이 실행 중이어야 합니다.
+테스트는 영상 제외, 82개 파라미터 계획, 인물 분류, SNS 출처/URL 허용목록/리다이렉트, API 빈 결과와 재시도, dry-run 무쓰기, 변경 해시, 동적 식별자 워터마크, 스냅샷 삭제 감지, 실제 MySQL 트랜잭션과 조합별 체크포인트를 확인합니다. 외부 테스트 DB 환경변수가 없으면 Docker 엔진이 실행 중이어야 합니다.
 
 ## 데이터 출처와 갱신
 

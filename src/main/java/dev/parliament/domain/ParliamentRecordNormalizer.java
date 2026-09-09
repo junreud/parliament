@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class ParliamentRecordNormalizer {
+    private static final String OFFICIAL_SNS_DIRECTORY_SOURCE = "negnlnyvatsjwocar";
     private static final List<String> RECORD_ID_FIELDS = List.of(
             "BILL_ID", "CONF_ID", "NAAS_CD", "MONA_CD", "PTT_ID", "BOARD_ID", "ID", "SEQ"
     );
@@ -73,7 +74,8 @@ public class ParliamentRecordNormalizer {
                 || source.name().contains("국회의원")
                 || sourcePersonId != null;
         List<PersonCandidate> people = new ArrayList<>();
-        List<SocialAccount> socialAccounts = socialAccountMapper.map(row);
+        List<SocialAccount> socialAccounts = socialAccountMapper.map(
+                row, OFFICIAL_SNS_DIRECTORY_SOURCE.equals(source.key()));
         for (String field : PERSON_NAME_FIELDS) {
             String name = value(row.get(field));
             if (name != null) {

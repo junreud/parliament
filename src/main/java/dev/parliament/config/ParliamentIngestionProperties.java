@@ -11,7 +11,14 @@ public class ParliamentIngestionProperties {
     private int maxPageSize = 100;
     private int maxPagesPerRun = 1000;
     private int currentAssemblyNumber = 22;
+    private boolean automaticEnabled;
+    private int incrementalPageSize = 100;
+    private int incrementalMaxPages = 1000;
+    private boolean socialVerificationEnabled = true;
+    private int socialVerificationMaxAgeDays = 7;
+    private int socialVerificationBatchSize = 200;
     private String baseUrl = "https://open.assembly.go.kr/portal/openapi";
+    private String caCertificatePath;
 
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
@@ -34,4 +41,36 @@ public class ParliamentIngestionProperties {
     }
     public String getBaseUrl() { return baseUrl; }
     public void setBaseUrl(String baseUrl) { this.baseUrl = baseUrl; }
+    public String getCaCertificatePath() { return caCertificatePath; }
+    public void setCaCertificatePath(String caCertificatePath) { this.caCertificatePath = caCertificatePath; }
+    public boolean isAutomaticEnabled() { return automaticEnabled; }
+    public void setAutomaticEnabled(boolean automaticEnabled) { this.automaticEnabled = automaticEnabled; }
+    public int getIncrementalPageSize() { return incrementalPageSize; }
+    public void setIncrementalPageSize(int incrementalPageSize) {
+        if (incrementalPageSize < 1) throw new IllegalArgumentException("incrementalPageSize must be positive");
+        this.incrementalPageSize = incrementalPageSize;
+    }
+    public int getIncrementalMaxPages() { return incrementalMaxPages; }
+    public void setIncrementalMaxPages(int incrementalMaxPages) {
+        if (incrementalMaxPages < 1) throw new IllegalArgumentException("incrementalMaxPages must be positive");
+        this.incrementalMaxPages = incrementalMaxPages;
+    }
+    public boolean isSocialVerificationEnabled() { return socialVerificationEnabled; }
+    public void setSocialVerificationEnabled(boolean socialVerificationEnabled) {
+        this.socialVerificationEnabled = socialVerificationEnabled;
+    }
+    public int getSocialVerificationMaxAgeDays() { return socialVerificationMaxAgeDays; }
+    public void setSocialVerificationMaxAgeDays(int socialVerificationMaxAgeDays) {
+        if (socialVerificationMaxAgeDays < 1) {
+            throw new IllegalArgumentException("socialVerificationMaxAgeDays must be positive");
+        }
+        this.socialVerificationMaxAgeDays = socialVerificationMaxAgeDays;
+    }
+    public int getSocialVerificationBatchSize() { return socialVerificationBatchSize; }
+    public void setSocialVerificationBatchSize(int socialVerificationBatchSize) {
+        if (socialVerificationBatchSize < 1 || socialVerificationBatchSize > 10_000) {
+            throw new IllegalArgumentException("socialVerificationBatchSize must be between 1 and 10000");
+        }
+        this.socialVerificationBatchSize = socialVerificationBatchSize;
+    }
 }

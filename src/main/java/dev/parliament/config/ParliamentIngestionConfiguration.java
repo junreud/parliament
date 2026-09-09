@@ -4,11 +4,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.parliament.api.OpenAssemblyResponseParser;
 import dev.parliament.api.ParliamentApiClient;
 import dev.parliament.api.WebClientParliamentApiClient;
+import dev.parliament.api.OpenAssemblyWebClientFactory;
 import dev.parliament.domain.ParliamentRecordNormalizer;
 import dev.parliament.persistence.ParliamentStagingRepository;
 import dev.parliament.persistence.R2dbcParliamentStagingRepository;
 import dev.parliament.service.ParliamentIngestionService;
 import dev.parliament.service.ParliamentParameterResolver;
+import dev.parliament.service.ParliamentSocialUrlPolicy;
+import dev.parliament.service.ParliamentSocialVerificationService;
+import dev.parliament.service.SocialLinkClient;
+import dev.parliament.service.WebClientSocialLinkClient;
+import dev.parliament.service.ParliamentJobGuard;
 import io.r2dbc.spi.ConnectionFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -17,11 +23,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.r2dbc.connection.R2dbcTransactionManager;
 import org.springframework.transaction.reactive.TransactionalOperator;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.Clock;
 
 @Configuration
+@EnableScheduling
 @EnableConfigurationProperties(ParliamentIngestionProperties.class)
 @ConditionalOnProperty(prefix = "parliament.ingestion", name = "enabled", havingValue = "true")
 public class ParliamentIngestionConfiguration {
@@ -56,7 +64,8 @@ public class ParliamentIngestionConfiguration {
             ParliamentIngestionProperties properties,
             OpenAssemblyResponseParser parser
     ) {
-        return new WebClientParliamentApiClient(webClientBuilder.build(), properties, parser);
+        WebClient webClient = new OpenAssemblyWebClientFactory().create(webClientBuilder, properties);
+        return new WebClientParliamentApiClient(webClient, properties, parser);
     }
 
     @Bean
@@ -79,10 +88,12 @@ public class ParliamentIngestionConfiguration {
             ParliamentRecordNormalizer normalizer,
             ParliamentSourceCatalog catalog,
             ParliamentIngestionProperties properties,
-            ParliamentParameterResolver parameterResolver
+            ParliamentParameterResolver parameterResolver,
+            Clock parliamentClock
     ) {
         return new ParliamentIngestionService(
-                apiClient, repository, normalizer, catalog, properties, parameterResolver);
+                apiClient, repository, normalizer, catalog, properties, parameterResolver,
+                parliamentClock);
     }
 
     @Bean
@@ -93,5 +104,35 @@ public class ParliamentIngestionConfiguration {
             Clock parliamentClock
     ) {
         return new ParliamentParameterResolver(plans, repository, properties, parliamentClock);
+    }
+
+    @Bean
+    ParliamentSocialUrlPolicy parliamentSocialUrlPolicy() {
+        return new ParliamentSocialUrlPolicy();
+    }
+
+    @Bean
+    SocialLinkClient parliamentSocialLinkClient(
+            WebClient.Builder webClientBuilder,
+            ParliamentIngestionProperties properties
+    ) {
+        WebClient webClient = new OpenAssemblyWebClientFactory().create(webClientBuilder, properties);
+        return new WebClientSocialLinkClient(webClient);
+    }
+
+    @Bean
+    ParliamentSocialVerificationService parliamentSocialVerificationService(
+            SocialLinkClient parliamentSocialLinkClient,
+            ParliamentStagingRepository repository,
+            ParliamentSocialUrlPolicy parliamentSocialUrlPolicy,
+            Clock parliamentClock
+    ) {
+        return new ParliamentSocialVerificationService(
+                parliamentSocialLinkClient, repository, parliamentSocialUrlPolicy, parliamentClock);
+    }
+
+    @Bean
+    ParliamentJobGuard parliamentJobGuard() {
+        return new ParliamentJobGuard();
     }
 }

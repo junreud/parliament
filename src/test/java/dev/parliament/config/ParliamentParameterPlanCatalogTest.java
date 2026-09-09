@@ -13,15 +13,13 @@ class ParliamentParameterPlanCatalogTest {
 
         assertThat(catalog.all()).hasSize(82);
         assertThat(catalog.all()).filteredOn(plan -> plan.status() == ParameterPlanStatus.PARAMETERIZED)
-                .hasSize(71)
+                .hasSize(72)
                 .allSatisfy(plan -> assertThat(plan.bindings()).isNotEmpty());
         assertThat(catalog.all()).filteredOn(plan -> plan.status() == ParameterPlanStatus.EMPTY_ALLOWED)
                 .hasSize(7);
         assertThat(catalog.all()).filteredOn(plan -> plan.status() == ParameterPlanStatus.RETRYABLE)
                 .hasSize(3);
-        assertThat(catalog.all()).filteredOn(plan -> plan.status() == ParameterPlanStatus.UNRESOLVED)
-                .singleElement()
-                .satisfies(plan -> assertThat(plan.sourceKey()).isEqualTo("namemberevent"));
+        assertThat(catalog.all()).noneMatch(plan -> plan.status() == ParameterPlanStatus.UNRESOLVED);
 
         assertThat(catalog.require("allbill").bindings())
                 .singleElement()
@@ -41,5 +39,12 @@ class ParliamentParameterPlanCatalogTest {
         assertThat(catalog.require("nzbyfwhwaoanttzje").bindings())
                 .extracting(ParliamentParameterBinding::parameter)
                 .containsExactly("DAE_NUM", "CONF_DATE");
+        assertThat(catalog.require("namemberevent").bindings())
+                .singleElement()
+                .satisfies(binding -> {
+                    assertThat(binding.parameter()).isEqualTo("NAAS_CD");
+                    assertThat(binding.sourceKey()).isEqualTo("nwvrqwxyaytdsfvhu");
+                    assertThat(binding.sourceField()).isEqualTo("MONA_CD");
+                });
     }
 }

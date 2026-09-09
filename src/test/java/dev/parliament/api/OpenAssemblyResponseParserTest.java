@@ -38,5 +38,16 @@ class OpenAssemblyResponseParserTest {
                 .hasMessageContaining("ERROR-290")
                 .hasMessageNotContaining("sample-key");
     }
-}
 
+    @Test
+    void treatsTheOfficialNoDataCodeAsAnEmptySuccessfulPage() throws Exception {
+        var body = objectMapper.readTree("""
+                {"RESULT":{"CODE":"INFO-200","MESSAGE":"해당하는 데이터가 없습니다."}}
+                """);
+
+        OpenAssemblyPage page = parser.parse("EMPTY_SOURCE", body);
+
+        assertThat(page.totalCount()).isZero();
+        assertThat(page.rows()).isEmpty();
+    }
+}

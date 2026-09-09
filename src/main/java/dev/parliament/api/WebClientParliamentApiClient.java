@@ -7,12 +7,14 @@ import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.regex.Pattern;
+import java.util.concurrent.TimeoutException;
 
 public class WebClientParliamentApiClient implements ParliamentApiClient {
     private static final String OFFICIAL_HOST = "open.assembly.go.kr";
@@ -55,6 +57,11 @@ public class WebClientParliamentApiClient implements ParliamentApiClient {
                 .header("User-Agent", USER_AGENT)
                 .exchangeToMono(response -> {
                     if (response.statusCode().isError()) {
+                        if (response.statusCode().value() == 429
+                                || response.statusCode().is5xxServerError()) {
+                            return response.releaseBody().then(Mono.error(
+                                    new OpenAssemblyTransientException(response.statusCode().value())));
+                        }
                         return Mono.error(new OpenAssemblyApiException(
                                 "Open Assembly HTTP error " + response.statusCode().value()));
                     }
@@ -71,6 +78,11 @@ public class WebClientParliamentApiClient implements ParliamentApiClient {
                             });
                 })
                 .timeout(Duration.ofSeconds(20))
+                .retryWhen(Retry.backoff(2, Duration.ofMillis(200))
+                        .maxBackoff(Duration.ofSeconds(2))
+                        .filter(error -> error instanceof OpenAssemblyTransientException
+                                || error instanceof WebClientRequestException
+                                || error instanceof TimeoutException))
                 .map(body -> parser.parse(source.apiCode(), body))
                 .onErrorMap(WebClientRequestException.class,
                         error -> new OpenAssemblyApiException("Open Assembly request failed"));

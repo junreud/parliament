@@ -18,7 +18,7 @@ class ParliamentSocialAccountMapperTest {
                 "BLOG_URL", "https://blog.naver.com/example",
                 "FACEBOOK_URL", "example.page",
                 "INSTAGRAM_URL", "@example_insta"
-        ));
+        ), true);
 
         assertThat(accounts).extracting(SocialAccount::platform)
                 .containsExactlyInAnyOrder(
@@ -35,6 +35,15 @@ class ParliamentSocialAccountMapperTest {
                     assertThat(account.primary()).isTrue();
                     assertThat(account.verificationStatus()).isEqualTo(SocialVerificationStatus.OFFICIAL_DIRECTORY);
                 });
+    }
+
+    @Test
+    void doesNotClaimOfficialAccountForLinksFromOtherDatasets() {
+        var accounts = mapper.map(Map.of("X_URL", "https://x.com/example"), false);
+
+        assertThat(accounts).singleElement()
+                .extracting(SocialAccount::verificationStatus)
+                .isEqualTo(SocialVerificationStatus.UNVERIFIED);
     }
 
     @Test

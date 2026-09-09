@@ -1,0 +1,12 @@
+DROP VIEW IF EXISTS `parliament_current_legislator`;
+DROP VIEW IF EXISTS `parliament_former_legislator`;
+DROP TABLE IF EXISTS `parliament_ingestion_checkpoint`;
+DROP TABLE IF EXISTS `parliament_source_sync_state`;
+DROP TABLE IF EXISTS `parliament_record_person`;
+DROP TABLE IF EXISTS `parliament_source_record`;
+DROP TABLE IF EXISTS `parliament_social_account`;
+DROP TABLE IF EXISTS `parliament_person_position`;
+DROP TABLE IF EXISTS `parliament_legislator_status`;
+DROP TABLE IF EXISTS `parliament_legislator_term`;
+DROP TABLE IF EXISTS `parliament_person_identifier`;
+DROP TABLE IF EXISTS `parliament_person`;
