@@ -10,6 +10,10 @@ import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import dev.parliament.service.IngestionExpectation;
+import dev.parliament.service.IngestionRunStatus;
+import dev.parliament.service.IngestionSourceOutcome;
+import dev.parliament.service.IngestionTrigger;
 
 import java.util.List;
 import java.time.Instant;
@@ -24,6 +28,168 @@ public class R2dbcParliamentStagingRepository implements ParliamentStagingReposi
     ) {
         this.databaseClient = databaseClient;
         this.transaction = transaction;
+    }
+
+    @Override
+    public Mono<Long> startRun(
+            IngestionTrigger trigger,
+            Instant scheduledFor,
+            Instant startedAt,
+            List<IngestionSourceSchedule> sources
+    ) {
+        DatabaseClient.GenericExecuteSpec runInsert = databaseClient.sql("""
+                        INSERT INTO parliament_ingestion_run
+                          (trigger_type, scheduled_for, started_at, status, expected_sources)
+                        VALUES (:triggerType, :scheduledFor, :startedAt, 'RUNNING', :expectedSources)
+                        """)
+                .bind("triggerType", trigger.name())
+                .bind("startedAt", startedAt)
+                .bind("expectedSources", sources.size());
+        runInsert = scheduledFor == null
+                ? runInsert.bindNull("scheduledFor", Instant.class)
+                : runInsert.bind("scheduledFor", scheduledFor);
+        Mono<Long> operation = runInsert
+                .filter(statement -> statement.returnGeneratedValues("run_id"))
+                .map((row, metadata) -> row.get("run_id", Long.class))
+                .one()
+                .switchIfEmpty(Mono.error(new IllegalStateException("ingestion run id was not generated")))
+                .flatMap(runId -> Flux.fromIterable(sources)
+                        .concatMap(source -> databaseClient.sql("""
+                                        INSERT INTO parliament_ingestion_source_run
+                                          (run_id, source_key, api_code, source_name, expectation, outcome)
+                                        VALUES (:runId, :sourceKey, :apiCode, :sourceName, :expectation, 'SCHEDULED')
+                                        """)
+                                .bind("runId", runId)
+                                .bind("sourceKey", source.sourceKey())
+                                .bind("apiCode", source.apiCode())
+                                .bind("sourceName", source.sourceName())
+                                .bind("expectation", source.expectation().name())
+                                .fetch().rowsUpdated())
+                        .then()
+                        .thenReturn(runId));
+        return transaction.transactional(operation);
+    }
+
+    @Override
+    public Mono<Void> markSourceRunStarted(long runId, String sourceKey, Instant startedAt) {
+        return databaseClient.sql("""
+                        UPDATE parliament_ingestion_source_run
+                        SET outcome = 'RUNNING', started_at = :startedAt
+                        WHERE run_id = :runId AND source_key = :sourceKey
+                        """)
+                .bind("runId", runId)
+                .bind("sourceKey", sourceKey)
+                .bind("startedAt", startedAt)
+                .fetch().rowsUpdated().then();
+    }
+
+    @Override
+    public Mono<Void> completeSourceRun(
+            long runId,
+            String sourceKey,
+            IngestionSourceCompletion completion
+    ) {
+        DatabaseClient.GenericExecuteSpec update = databaseClient.sql("""
+                        UPDATE parliament_ingestion_source_run
+                        SET outcome = :outcome,
+                            finished_at = :finishedAt,
+                            variants = :variants,
+                            scanned = :scanned,
+                            changed_rows = :changed,
+                            unchanged_rows = :unchanged,
+                            removed_rows = :removed,
+                            pages = :pages,
+                            error_code = :errorCode,
+                            message = :message
+                        WHERE run_id = :runId AND source_key = :sourceKey
+                        """)
+                .bind("outcome", completion.outcome().name())
+                .bind("finishedAt", completion.finishedAt())
+                .bind("variants", completion.variants())
+                .bind("scanned", completion.scanned())
+                .bind("changed", completion.changed())
+                .bind("unchanged", completion.unchanged())
+                .bind("removed", completion.removed())
+                .bind("pages", completion.pages())
+                .bind("runId", runId)
+                .bind("sourceKey", sourceKey);
+        update = completion.errorCode() == null
+                ? update.bindNull("errorCode", String.class)
+                : update.bind("errorCode", completion.errorCode());
+        update = completion.message() == null
+                ? update.bindNull("message", String.class)
+                : update.bind("message", completion.message());
+        return update.fetch().rowsUpdated().then();
+    }
+
+    @Override
+    public Mono<Void> completeRun(
+            long runId,
+            IngestionRunStatus status,
+            Instant finishedAt,
+            int succeededSources,
+            int failedSources
+    ) {
+        return databaseClient.sql("""
+                        UPDATE parliament_ingestion_run
+                        SET status = :status,
+                            finished_at = :finishedAt,
+                            succeeded_sources = :succeededSources,
+                            failed_sources = :failedSources
+                        WHERE run_id = :runId
+                        """)
+                .bind("status", status.name())
+                .bind("finishedAt", finishedAt)
+                .bind("succeededSources", succeededSources)
+                .bind("failedSources", failedSources)
+                .bind("runId", runId)
+                .fetch().rowsUpdated().then();
+    }
+
+    @Override
+    public Flux<IngestionHistoryEntry> findHistory(Instant fromInclusive, Instant toExclusive) {
+        return databaseClient.sql("""
+                        SELECT r.run_id, r.trigger_type, r.scheduled_for,
+                               r.started_at AS run_started_at, r.status AS run_status,
+                               s.source_key, s.api_code, s.source_name, s.expectation,
+                               s.outcome, s.started_at AS source_started_at,
+                               s.finished_at AS source_finished_at,
+                               s.variants, s.scanned, s.changed_rows, s.unchanged_rows,
+                               s.removed_rows, s.pages, s.error_code, s.message
+                        FROM parliament_ingestion_run r
+                        JOIN parliament_ingestion_source_run s ON s.run_id = r.run_id
+                        WHERE COALESCE(r.scheduled_for, r.started_at) >= :fromInclusive
+                          AND COALESCE(r.scheduled_for, r.started_at) < :toExclusive
+                        ORDER BY COALESCE(r.scheduled_for, r.started_at), r.run_id, s.source_key
+                        """)
+                .bind("fromInclusive", fromInclusive)
+                .bind("toExclusive", toExclusive)
+                .map((row, metadata) -> new IngestionHistoryEntry(
+                        row.get("run_id", Long.class),
+                        IngestionTrigger.valueOf(row.get("trigger_type", String.class)),
+                        row.get("scheduled_for", Instant.class),
+                        row.get("run_started_at", Instant.class),
+                        IngestionRunStatus.valueOf(row.get("run_status", String.class)),
+                        row.get("source_key", String.class),
+                        row.get("api_code", String.class),
+                        row.get("source_name", String.class),
+                        IngestionExpectation.valueOf(row.get("expectation", String.class)),
+                        IngestionSourceOutcome.valueOf(row.get("outcome", String.class)),
+                        row.get("source_started_at", Instant.class),
+                        row.get("source_finished_at", Instant.class),
+                        number(row.get("variants", Integer.class)),
+                        number(row.get("scanned", Integer.class)),
+                        number(row.get("changed_rows", Integer.class)),
+                        number(row.get("unchanged_rows", Integer.class)),
+                        number(row.get("removed_rows", Integer.class)),
+                        number(row.get("pages", Integer.class)),
+                        row.get("error_code", String.class),
+                        row.get("message", String.class)))
+                .all();
+    }
+
+    private static int number(Integer value) {
+        return value == null ? 0 : value;
     }
 
     @Override

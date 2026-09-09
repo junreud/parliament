@@ -15,6 +15,7 @@ import dev.parliament.service.ParliamentSocialVerificationService;
 import dev.parliament.service.SocialLinkClient;
 import dev.parliament.service.WebClientSocialLinkClient;
 import dev.parliament.service.ParliamentJobGuard;
+import dev.parliament.service.ParliamentDashboardService;
 import io.r2dbc.spi.ConnectionFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -134,5 +135,17 @@ public class ParliamentIngestionConfiguration {
     @Bean
     ParliamentJobGuard parliamentJobGuard() {
         return new ParliamentJobGuard();
+    }
+
+    @Bean
+    ParliamentDashboardService parliamentDashboardService(
+            ParliamentStagingRepository repository,
+            ParliamentSourceCatalog sources,
+            ParliamentParameterPlanCatalog plans,
+            ParliamentIngestionProperties properties,
+            Clock parliamentClock
+    ) {
+        return new ParliamentDashboardService(
+                repository, sources, plans, properties, parliamentClock);
     }
 }

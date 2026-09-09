@@ -30,7 +30,7 @@ class ParliamentDashboardControllerTest {
         LocalDate date = LocalDate.of(2026, 9, 10);
         ParliamentDashboardSnapshot snapshot = new ParliamentDashboardSnapshot(
                 Instant.EPOCH, "Asia/Seoul", false, null,
-                new DashboardOverview(0, 0, 0, 0, 0, 0, 0, 0, 0),
+                new DashboardOverview(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
                 List.of(), List.of());
         when(service.snapshot(date, 30)).thenReturn(Mono.just(snapshot));
 

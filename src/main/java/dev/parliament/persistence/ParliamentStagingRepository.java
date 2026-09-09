@@ -8,7 +8,8 @@ import java.util.List;
 import java.time.Instant;
 
 public interface ParliamentStagingRepository
-        extends ParliamentParameterValueRepository, ParliamentSocialVerificationRepository {
+        extends ParliamentParameterValueRepository, ParliamentSocialVerificationRepository,
+        ParliamentIngestionHistoryRepository {
     Mono<ParliamentIngestionCheckpoint> checkpoint(String sourceKey, String variantKey);
 
     Mono<Void> resetCheckpoint(String sourceKey, String variantKey);

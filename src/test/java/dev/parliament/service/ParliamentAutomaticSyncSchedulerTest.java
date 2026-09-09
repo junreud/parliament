@@ -24,7 +24,7 @@ class ParliamentAutomaticSyncSchedulerTest {
         properties.setIncrementalMaxPages(20);
         properties.setSocialVerificationMaxAgeDays(3);
         properties.setSocialVerificationBatchSize(40);
-        when(ingestion.synchronize(any())).thenReturn(Mono.just(
+        when(ingestion.synchronizeAutomatically(any())).thenReturn(Mono.just(
                 new ParliamentSyncReport(java.time.Instant.EPOCH, java.time.Instant.EPOCH, List.of())));
         when(social.verifyDue(java.time.Duration.ofDays(3), 40)).thenReturn(Mono.just(7));
         ParliamentAutomaticSyncScheduler scheduler =
@@ -33,7 +33,8 @@ class ParliamentAutomaticSyncSchedulerTest {
 
         scheduler.synchronize();
 
-        verify(ingestion).synchronize(new ParliamentIngestionRequest(List.of(), 50, 20, true));
+        verify(ingestion).synchronizeAutomatically(
+                new ParliamentIngestionRequest(List.of(), 50, 20, true));
         verify(social).verifyDue(java.time.Duration.ofDays(3), 40);
     }
 
@@ -43,7 +44,7 @@ class ParliamentAutomaticSyncSchedulerTest {
         ParliamentSocialVerificationService social = mock(ParliamentSocialVerificationService.class);
         ParliamentIngestionProperties properties = new ParliamentIngestionProperties();
         properties.setSocialVerificationEnabled(false);
-        when(ingestion.synchronize(any())).thenReturn(Mono.never());
+        when(ingestion.synchronizeAutomatically(any())).thenReturn(Mono.never());
         ParliamentAutomaticSyncScheduler scheduler =
                 new ParliamentAutomaticSyncScheduler(
                         ingestion, social, properties, new ParliamentJobGuard());
@@ -51,7 +52,7 @@ class ParliamentAutomaticSyncSchedulerTest {
         scheduler.synchronize();
         scheduler.synchronize();
 
-        verify(ingestion, times(1)).synchronize(any());
+        verify(ingestion, times(1)).synchronizeAutomatically(any());
         verify(social, times(0)).verifyDue(any(), anyInt());
     }
 }

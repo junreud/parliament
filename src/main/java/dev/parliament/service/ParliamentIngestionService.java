@@ -8,9 +8,12 @@ import dev.parliament.config.ParliamentSourceDefinition;
 import dev.parliament.domain.NormalizedParliamentRecord;
 import dev.parliament.domain.ParliamentRecordNormalizer;
 import dev.parliament.persistence.ParliamentIngestionCheckpoint;
+import dev.parliament.persistence.IngestionSourceCompletion;
+import dev.parliament.persistence.IngestionSourceSchedule;
 import dev.parliament.persistence.ParliamentStagingRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.Exceptions;
 
 import java.util.List;
 import java.util.Objects;
@@ -70,27 +73,134 @@ public class ParliamentIngestionService {
         if (!request.confirmWrite()) {
             return Mono.error(new IllegalArgumentException("confirmWrite must be true"));
         }
-        return Flux.fromIterable(resolveSources(request))
-                .concatMap(source -> parameterResolver.resolveAll(source)
-                        .concatMap(resolved -> repository.checkpoint(source.key(), resolved.variantKey())
-                                .defaultIfEmpty(ParliamentIngestionCheckpoint.initial())
-                                .flatMap(checkpoint -> checkpoint.complete()
-                                        ? Mono.just(alreadyComplete(resolved))
-                                        : ingestPage(resolved, checkpoint.nextPage(), request, 0)))
+        Instant startedAt = clock.instant();
+        List<ParliamentSourceDefinition> sources = resolveSources(request);
+        List<IngestionSourceSchedule> schedules = schedules(sources);
+        return repository.startRun(IngestionTrigger.MANUAL, null, startedAt, schedules)
+                .flatMap(runId -> Flux.fromIterable(sources)
+                        .concatMap(source -> repository.markSourceRunStarted(
+                                        runId, source.key(), clock.instant())
+                                .then(parameterResolver.resolveAll(source)
+                                        .concatMap(resolved -> repository.checkpoint(
+                                                        source.key(), resolved.variantKey())
+                                                .defaultIfEmpty(ParliamentIngestionCheckpoint.initial())
+                                                .flatMap(checkpoint -> checkpoint.complete()
+                                                        ? Mono.just(alreadyComplete(resolved))
+                                                        : ingestPage(resolved, checkpoint.nextPage(), request, 0)))
+                                        .collectList()
+                                        .map(reports -> aggregate(source, reports))
+                                        .onErrorResume(error -> Mono.just(failed(source, error))))
+                                .flatMap(report -> repository.completeSourceRun(
+                                                runId, source.key(), completion(report))
+                                        .thenReturn(report)))
                         .collectList()
-                        .map(reports -> aggregate(source, reports))
-                        .onErrorResume(error -> Mono.just(failed(source, error))))
-                .collectList()
-                .map(reports -> new ParliamentIngestionReport(true, reports));
+                        .flatMap(reports -> completeInitialRun(runId, reports)
+                                .thenReturn(new ParliamentIngestionReport(true, reports)))
+                        .onErrorResume(error -> repository.completeRun(
+                                        runId, IngestionRunStatus.FAILED,
+                                        clock.instant(), 0, sources.size())
+                                .onErrorResume(ignored -> Mono.empty())
+                                .then(Mono.error(error))));
     }
 
     public Mono<ParliamentSyncReport> synchronize(ParliamentIngestionRequest request) {
+        return synchronize(request, IngestionTrigger.MANUAL, null);
+    }
+
+    public Mono<ParliamentSyncReport> synchronizeAutomatically(ParliamentIngestionRequest request) {
+        return synchronize(request, IngestionTrigger.AUTOMATIC, clock.instant());
+    }
+
+    private Mono<ParliamentSyncReport> synchronize(
+            ParliamentIngestionRequest request,
+            IngestionTrigger trigger,
+            Instant scheduledFor
+    ) {
         validateWriteRequest(request);
         Instant startedAt = clock.instant();
-        return Flux.fromIterable(resolveSources(request))
-                .concatMap(source -> synchronizeSource(source, request))
-                .collectList()
-                .map(reports -> new ParliamentSyncReport(startedAt, clock.instant(), reports));
+        List<ParliamentSourceDefinition> sources = resolveSources(request);
+        List<IngestionSourceSchedule> schedules = schedules(sources);
+        return repository.startRun(trigger, scheduledFor, startedAt, schedules)
+                .flatMap(runId -> Flux.fromIterable(sources)
+                        .concatMap(source -> repository.markSourceRunStarted(
+                                        runId, source.key(), clock.instant())
+                                .then(synchronizeSource(source, request))
+                                .flatMap(report -> repository.completeSourceRun(
+                                                runId, source.key(), completion(report))
+                                        .thenReturn(report)))
+                        .collectList()
+                        .flatMap(reports -> {
+                            int succeeded = (int) reports.stream()
+                                    .map(IngestionSourceOutcome::from)
+                                    .filter(IngestionSourceOutcome::isSuccess)
+                                    .count();
+                            int failed = reports.size() - succeeded;
+                            IngestionRunStatus status = failed == 0
+                                    ? IngestionRunStatus.SUCCESS
+                                    : succeeded == 0 ? IngestionRunStatus.FAILED
+                                    : IngestionRunStatus.PARTIAL;
+                            Instant finishedAt = clock.instant();
+                            return repository.completeRun(
+                                            runId, status, finishedAt, succeeded, failed)
+                                    .thenReturn(new ParliamentSyncReport(
+                                            startedAt, finishedAt, reports));
+                        })
+                        .onErrorResume(error -> repository.completeRun(
+                                        runId, IngestionRunStatus.FAILED,
+                                        clock.instant(), 0, sources.size())
+                                .onErrorResume(ignored -> Mono.empty())
+                                .then(Mono.error(error))));
+    }
+
+    private List<IngestionSourceSchedule> schedules(List<ParliamentSourceDefinition> sources) {
+        return sources.stream()
+                .map(source -> new IngestionSourceSchedule(
+                        source.key(), source.apiCode(), source.name(),
+                        parameterResolver.expectation(source)))
+                .toList();
+    }
+
+    private Mono<Void> completeInitialRun(long runId, List<ParliamentSourceReport> reports) {
+        int succeeded = (int) reports.stream()
+                .filter(report -> report.status() == ParliamentSourceStatus.COMPLETE)
+                .count();
+        int failed = reports.size() - succeeded;
+        IngestionRunStatus status = failed == 0
+                ? IngestionRunStatus.SUCCESS
+                : succeeded == 0 ? IngestionRunStatus.FAILED : IngestionRunStatus.PARTIAL;
+        return repository.completeRun(runId, status, clock.instant(), succeeded, failed);
+    }
+
+    private IngestionSourceCompletion completion(ParliamentSyncSourceReport report) {
+        IngestionSourceOutcome outcome = IngestionSourceOutcome.from(report);
+        String errorCode = outcome == IngestionSourceOutcome.RETRY_EXHAUSTED
+                ? "RETRY_EXHAUSTED"
+                : outcome == IngestionSourceOutcome.FAILED ? "SOURCE_FAILED"
+                : outcome == IngestionSourceOutcome.PARTIAL ? "INCOMPLETE" : null;
+        return new IngestionSourceCompletion(
+                outcome, clock.instant(), report.variants(), report.scanned(),
+                report.changed(), report.unchanged(), report.removed(), report.pages(),
+                errorCode, report.message());
+    }
+
+    private IngestionSourceCompletion completion(ParliamentSourceReport report) {
+        IngestionSourceOutcome outcome;
+        if (report.status() == ParliamentSourceStatus.FAILED) {
+            outcome = IngestionSourceOutcome.FAILED;
+        } else if (report.status() == ParliamentSourceStatus.PARTIAL || !report.complete()) {
+            outcome = IngestionSourceOutcome.PARTIAL;
+        } else if (report.records() == 0) {
+            outcome = "already complete".equals(report.message())
+                    ? IngestionSourceOutcome.SUCCESS_UNCHANGED
+                    : IngestionSourceOutcome.SUCCESS_EMPTY;
+        } else {
+            outcome = IngestionSourceOutcome.SUCCESS_CHANGED;
+        }
+        String errorCode = outcome == IngestionSourceOutcome.FAILED
+                ? "SOURCE_FAILED" : outcome == IngestionSourceOutcome.PARTIAL ? "INCOMPLETE" : null;
+        return new IngestionSourceCompletion(
+                outcome, clock.instant(), 1, report.records(), report.records(),
+                0, 0, report.pages(), errorCode, report.message());
     }
 
     private Mono<ParliamentSyncSourceReport> synchronizeSource(
@@ -118,7 +228,8 @@ public class ParliamentIngestionService {
                                 .map(removed -> new ParliamentSyncSourceReport(
                                         report.sourceKey(), report.variants(), report.scanned(),
                                         report.changed(), report.unchanged(), removed, report.pages(),
-                                        report.complete(), report.status(), report.message()))
+                                        report.complete(), report.status(), report.message(),
+                                        report.retryExhausted()))
                         : Mono.just(report))
                 .flatMap(report -> report.complete()
                         ? repository.markSourceSyncCompleted(
@@ -132,7 +243,8 @@ public class ParliamentIngestionService {
                         .onErrorResume(ignored -> Mono.empty())
                         .thenReturn(new ParliamentSyncSourceReport(
                                 source.key(), 0, 0, 0, 0, 0, 0, false,
-                                ParliamentSourceStatus.FAILED, safeError(error))));
+                                ParliamentSourceStatus.FAILED, safeError(error),
+                                Exceptions.isRetryExhausted(error))));
     }
 
     private Mono<VariantSyncReport> synchronizePage(
@@ -168,10 +280,12 @@ public class ParliamentIngestionService {
             return new ParliamentSyncSourceReport(
                     source.key(), 0, 0, 0, 0, 0, 0, emptyMeansNoChanges,
                     emptyMeansNoChanges ? ParliamentSourceStatus.COMPLETE : ParliamentSourceStatus.FAILED,
-                    emptyMeansNoChanges ? "no changed parent identifiers" : "no parameter variants resolved");
+                    emptyMeansNoChanges ? "no changed parent identifiers" : "no parameter variants resolved",
+                    false);
         }
         boolean failed = variants.stream().anyMatch(item -> item.status() == ParliamentSourceStatus.FAILED);
         boolean complete = !failed && variants.stream().allMatch(VariantSyncReport::complete);
+        boolean retryExhausted = variants.stream().anyMatch(VariantSyncReport::retryExhausted);
         String message = variants.stream().map(VariantSyncReport::message)
                 .filter(Objects::nonNull).distinct().reduce((left, right) -> left + "; " + right)
                 .orElse(null);
@@ -185,7 +299,8 @@ public class ParliamentIngestionService {
                 complete,
                 failed ? ParliamentSourceStatus.FAILED
                         : complete ? ParliamentSourceStatus.COMPLETE : ParliamentSourceStatus.PARTIAL,
-                message);
+                message,
+                retryExhausted);
     }
 
     private Mono<ParliamentSourceReport> ingestPage(
@@ -331,18 +446,21 @@ public class ParliamentIngestionService {
             int pages,
             boolean complete,
             ParliamentSourceStatus status,
-            String message
+            String message,
+            boolean retryExhausted
     ) {
         static VariantSyncReport of(ParliamentPageWriteResult write, int pages, boolean complete) {
             return new VariantSyncReport(
                     write.received(), write.changed(), write.unchanged(), pages, complete,
-                    complete ? ParliamentSourceStatus.COMPLETE : ParliamentSourceStatus.PARTIAL, null);
+                    complete ? ParliamentSourceStatus.COMPLETE : ParliamentSourceStatus.PARTIAL,
+                    null, false);
         }
 
         static VariantSyncReport failed(Throwable error) {
             return new VariantSyncReport(
                     0, 0, 0, 0, false, ParliamentSourceStatus.FAILED,
-                    "variant sync failed: " + error.getClass().getSimpleName());
+                    "variant sync failed: " + error.getClass().getSimpleName(),
+                    Exceptions.isRetryExhausted(error));
         }
 
         VariantSyncReport plus(VariantSyncReport next) {
@@ -353,7 +471,8 @@ public class ParliamentIngestionService {
                     pages + next.pages,
                     next.complete,
                     next.status,
-                    next.message);
+                    next.message,
+                    retryExhausted || next.retryExhausted);
         }
     }
 }

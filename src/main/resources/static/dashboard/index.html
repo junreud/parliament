@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>국회 데이터 적재 현황</title>
+  <link rel="stylesheet" href="/dashboard/dashboard.css">
+  <script src="/dashboard/dashboard.js" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">PARLIAMENT DATA PLATFORM</p>
+        <h1>국회 데이터 적재 현황</h1>
+        <p id="freshness" class="muted">관리 키를 입력하면 최신 상태를 불러옵니다.</p>
+      </div>
+      <div class="header-actions">
+        <span id="auto-state" class="pill neutral">상태 확인 전</span>
+        <button id="refresh" class="button secondary" type="button" disabled>새로고침</button>
+      </div>
+    </header>
+
+    <section id="auth-panel" class="auth-panel" aria-labelledby="auth-title">
+      <div>
+        <h2 id="auth-title">로컬 관리 키</h2>
+        <p>키는 브라우저 메모리에만 유지되며 저장되지 않습니다.</p>
+      </div>
+      <form id="auth-form">
+        <label class="sr-only" for="admin-key">관리 키</label>
+        <input id="admin-key" type="password" autocomplete="off" placeholder="X-Parliament-Ingestion-Key" required>
+        <button class="button primary" type="submit">대시보드 열기</button>
+      </form>
+      <p id="auth-error" class="error" role="alert"></p>
+    </section>
+
+    <main id="dashboard" hidden>
+      <section class="controls" aria-label="조회 조건">
+        <label>기준일<input id="selected-date" type="date"></label>
+        <label>조회 기간
+          <select id="days">
+            <option value="7">7일</option>
+            <option value="30" selected>30일</option>
+            <option value="90">90일</option>
+            <option value="366">1년</option>
+          </select>
+        </label>
+        <label>상태
+          <select id="status-filter"><option value="">전체 상태</option></select>
+        </label>
+        <label>수집 유형
+          <select id="expectation-filter"><option value="">전체 유형</option></select>
+        </label>
+        <label class="search">API 검색<input id="search" type="search" placeholder="이름 또는 source key"></label>
+      </section>
+
+      <section class="section-block" aria-labelledby="today-title">
+        <div class="section-heading">
+          <div><p class="eyebrow">SELECTED DAY</p><h2 id="today-title">오늘 예정</h2></div>
+          <p id="selected-summary" class="muted"></p>
+        </div>
+        <div id="metrics" class="metrics"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="trend-title">
+        <div class="section-heading">
+          <div><p class="eyebrow">HISTORY</p><h2 id="trend-title">일별 적재 추이</h2></div>
+          <div id="legend" class="legend"></div>
+        </div>
+        <div id="trend" class="trend" aria-label="일별 적재 상태 누적 막대"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="detail-title">
+        <div class="section-heading">
+          <div><p class="eyebrow">SOURCE DETAIL</p><h2 id="detail-title">API별 상세</h2></div>
+          <p id="visible-count" class="muted"></p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>API</th><th>수집 유형</th><th>상태</th><th>스캔</th><th>변경</th>
+              <th>변경 없음</th><th>페이지</th><th>시작</th><th>소요</th><th>메시지</th>
+            </tr></thead>
+            <tbody id="source-rows"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

@@ -42,7 +42,7 @@ public class ParliamentAutomaticSyncScheduler {
         ParliamentIngestionRequest request = new ParliamentIngestionRequest(
                 List.of(), properties.getIncrementalPageSize(),
                 properties.getIncrementalMaxPages(), true);
-        ingestionService.synchronize(request)
+        ingestionService.synchronizeAutomatically(request)
                 .flatMap(ignored -> properties.isSocialVerificationEnabled()
                         ? socialVerificationService.verifyDue(
                                 Duration.ofDays(properties.getSocialVerificationMaxAgeDays()),

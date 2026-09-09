@@ -11,6 +11,10 @@ import dev.parliament.domain.SocialAccount;
 import dev.parliament.domain.SocialPlatform;
 import dev.parliament.domain.SocialVerificationStatus;
 import dev.parliament.domain.SocialUrlVerificationStatus;
+import dev.parliament.service.IngestionExpectation;
+import dev.parliament.service.IngestionRunStatus;
+import dev.parliament.service.IngestionSourceOutcome;
+import dev.parliament.service.IngestionTrigger;
 import io.r2dbc.spi.ConnectionFactories;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -292,6 +296,38 @@ class R2dbcParliamentStagingRepositoryTest {
                         """)
                 .map((row, metadata) -> row.get("verification_status", String.class)).one())
                 .expectNext("UNVERIFIED")
+                .verifyComplete();
+    }
+
+    @Test
+    void storesEveryRunAndSourceOutcomeForDashboardHistory() {
+        java.time.Instant scheduled = java.time.Instant.parse("2026-09-09T19:00:00Z");
+        IngestionSourceSchedule source = new IngestionSourceSchedule(
+                "news", "news", "국회 보도자료", IngestionExpectation.RETRYABLE);
+
+        StepVerifier.create(repository.startRun(
+                        IngestionTrigger.AUTOMATIC, scheduled, scheduled, List.of(source))
+                .flatMap(runId -> repository.markSourceRunStarted(
+                                runId, "news", scheduled.plusSeconds(1))
+                        .then(repository.completeSourceRun(runId, "news",
+                                new IngestionSourceCompletion(
+                                        IngestionSourceOutcome.RETRY_EXHAUSTED,
+                                        scheduled.plusSeconds(5), 1, 0, 0, 0, 0, 0,
+                                        "RETRY_EXHAUSTED", "upstream unavailable")))
+                        .then(repository.completeRun(
+                                runId, IngestionRunStatus.FAILED,
+                                scheduled.plusSeconds(5), 0, 1))
+                        .thenMany(repository.findHistory(
+                                scheduled.minusSeconds(1), scheduled.plusSeconds(60)))
+                        .single()))
+                .assertNext(entry -> {
+                    assertThat(entry.trigger()).isEqualTo(IngestionTrigger.AUTOMATIC);
+                    assertThat(entry.sourceName()).isEqualTo("국회 보도자료");
+                    assertThat(entry.expectation()).isEqualTo(IngestionExpectation.RETRYABLE);
+                    assertThat(entry.outcome()).isEqualTo(IngestionSourceOutcome.RETRY_EXHAUSTED);
+                    assertThat(entry.errorCode()).isEqualTo("RETRY_EXHAUSTED");
+                    assertThat(entry.runStatus()).isEqualTo(IngestionRunStatus.FAILED);
+                })
                 .verifyComplete();
     }
 

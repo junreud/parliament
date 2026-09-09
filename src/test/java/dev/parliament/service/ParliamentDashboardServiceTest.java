@@ -40,11 +40,13 @@ class ParliamentDashboardServiceTest {
         properties.setIncrementalCron("0 0 4 * * *");
         properties.setIncrementalZone("Asia/Seoul");
         ParliamentIngestionHistoryRepository history = mock(ParliamentIngestionHistoryRepository.class);
-        Instant scheduled = Instant.parse("2026-09-09T19:00:00Z");
+        Instant scheduled = Instant.parse("2026-09-09T20:00:00Z");
         when(history.findHistory(any(), any())).thenReturn(Flux.just(
                 entry(1, "standard", "일반 API", IngestionExpectation.STANDARD,
                         IngestionSourceOutcome.SUCCESS_CHANGED, Instant.parse("2026-09-08T19:00:00Z")),
                 entry(2, "empty", "빈 결과 허용 API", IngestionExpectation.EMPTY_ALLOWED,
+                        IngestionSourceOutcome.FAILED, Instant.parse("2026-09-09T19:00:00Z")),
+                entry(3, "empty", "빈 결과 허용 API", IngestionExpectation.EMPTY_ALLOWED,
                         IngestionSourceOutcome.SUCCESS_EMPTY, scheduled)));
         Clock clock = Clock.fixed(Instant.parse("2026-09-09T21:00:00Z"), ZoneOffset.UTC);
 
@@ -57,10 +59,12 @@ class ParliamentDashboardServiceTest {
                     assertThat(snapshot.overview().expected()).isEqualTo(2);
                     assertThat(snapshot.overview().successEmpty()).isEqualTo(1);
                     assertThat(snapshot.overview().missed()).isEqualTo(1);
+                    assertThat(snapshot.overview().failed()).isZero();
                     assertThat(snapshot.days()).hasSize(2);
                     assertThat(snapshot.sources()).extracting(DashboardSourceStatus::outcome)
                             .containsExactlyInAnyOrder(
                                     IngestionSourceOutcome.MISSED,
+                                    IngestionSourceOutcome.FAILED,
                                     IngestionSourceOutcome.SUCCESS_EMPTY);
                 })
                 .verifyComplete();

@@ -26,6 +26,9 @@ import java.time.Clock;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.lenient;
@@ -59,6 +62,14 @@ class ParliamentIngestionServiceTest {
         lenient().when(repository.markSourceSyncStarted(anyString(), any())).thenReturn(Mono.empty());
         lenient().when(repository.markSourceSyncCompleted(anyString(), any(), any())).thenReturn(Mono.empty());
         lenient().when(repository.markSourceSyncFailed(anyString(), any(), anyString())).thenReturn(Mono.empty());
+        lenient().when(repository.startRun(any(), any(), any(), any()))
+                .thenReturn(Mono.just(1L));
+        lenient().when(repository.markSourceRunStarted(anyLong(), anyString(), any()))
+                .thenReturn(Mono.empty());
+        lenient().when(repository.completeSourceRun(anyLong(), anyString(), any()))
+                .thenReturn(Mono.empty());
+        lenient().when(repository.completeRun(anyLong(), any(), any(), anyInt(), anyInt()))
+                .thenReturn(Mono.empty());
     }
 
     @Test
@@ -233,6 +244,11 @@ class ParliamentIngestionServiceTest {
                 .verifyComplete();
 
         verify(repository).resetCheckpoint(source.key(), source.variantKey());
+        verify(repository).completeSourceRun(eq(1L), eq(source.key()), argThat(completion ->
+                completion.outcome() == IngestionSourceOutcome.SUCCESS_UNCHANGED
+                        && completion.scanned() == 1));
+        verify(repository).completeRun(
+                eq(1L), eq(IngestionRunStatus.SUCCESS), any(), eq(1), eq(0));
     }
 
     private ParliamentIngestionService service(ParliamentSourceCatalog catalog) {

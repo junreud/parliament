@@ -10,6 +10,7 @@ public record ParliamentSyncSourceReport(
         int pages,
         boolean complete,
         ParliamentSourceStatus status,
-        String message
+        String message,
+        boolean retryExhausted
 ) {
 }

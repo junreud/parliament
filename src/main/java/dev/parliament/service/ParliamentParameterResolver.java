@@ -66,6 +66,23 @@ public class ParliamentParameterResolver {
                         == dev.parliament.config.ParameterValueStrategy.SOURCE_FIELD);
     }
 
+    public IngestionExpectation expectation(ParliamentSourceDefinition source) {
+        return plans.find(source.key()).map(plan -> {
+            if (plan.status() == ParameterPlanStatus.EMPTY_ALLOWED) {
+                return IngestionExpectation.EMPTY_ALLOWED;
+            }
+            if (plan.status() == ParameterPlanStatus.RETRYABLE) {
+                return IngestionExpectation.RETRYABLE;
+            }
+            if (plan.status() == ParameterPlanStatus.PARAMETERIZED) {
+                return dependsOnSourceRecords(source)
+                        ? IngestionExpectation.DEPENDENCY_DRIVEN
+                        : IngestionExpectation.PARAMETERIZED_STATIC;
+            }
+            return IngestionExpectation.STANDARD;
+        }).orElse(IngestionExpectation.STANDARD);
+    }
+
     public Mono<ParliamentSourceDefinition> resolveSample(
             ParliamentSourceDefinition source,
             ParliamentParameterPlan plan

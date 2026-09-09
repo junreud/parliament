@@ -79,6 +79,24 @@ PARLIAMENT_INCREMENTAL_CRON='0 0 4 * * *'
 PARLIAMENT_INCREMENTAL_ZONE='Asia/Seoul'
 ```
 
+## 적재 모니터링 대시보드
+
+애플리케이션 실행 후 `http://localhost:8080/dashboard`에서 일별·API별 적재 상태를 확인합니다. 화면에서 `PARLIAMENT_INGESTION_ADMIN_KEY` 값을 한 번 입력하며, 키는 브라우저 저장소에 남기지 않고 현재 탭의 메모리에서만 사용합니다.
+
+대시보드는 최근 7일, 30일, 90일 또는 1년을 조회할 수 있고 다음 상태를 서로 구분합니다.
+
+- `SUCCESS_CHANGED`: 정상 완료 후 신규·변경 데이터 적재
+- `SUCCESS_UNCHANGED`: 정상 완료했지만 원문 변경 없음
+- `SUCCESS_EMPTY`: 정상 응답이지만 내용 없음
+- `SKIPPED_NO_PARENT_CHANGES`: 선행 식별자 변경이 없어 하위 API 호출 생략
+- `SCHEDULED` / `RUNNING`: 오늘 예정 또는 현재 실행 중
+- `PARTIAL` / `FAILED`: 페이지 제한에 따른 부분 완료 또는 일반 실패
+- `RETRY_EXHAUSTED`: 일시 오류 재시도를 모두 소진한 최종 실패
+- `MISSED`: 자동 실행 시각이 지났지만 실행 기록 없음
+- `AUTOMATION_DISABLED`: 자동 적재 설정이 꺼져 있음
+
+각 증분 실행은 `parliament_ingestion_run`에, 실행에 포함된 모든 API의 예정·진행·최종 결과는 `parliament_ingestion_source_run`에 계속 보존됩니다. 같은 날 재실행한 경우 일별 요약은 API별 최신 결과를 사용하지만 상세 표에는 앞선 실패를 포함한 모든 실행을 표시합니다. 대시보드 API는 `GET /api/v1/parliament-ingestion-dashboard?date=YYYY-MM-DD&days=30`이며 관리 키 헤더가 필요합니다.
+
 SNS만 수동 확인하려면 `POST /admin/ingestion/parliament/social/verify?maxAgeDays=7&limit=200`을 호출합니다. URL 검증은 SNS별 HTTPS 허용 도메인과 안전한 리다이렉트만 따라가며, `REACHABLE`, `REDIRECTED`, `NOT_FOUND`, `REJECTED`, `TEMPORARY_FAILURE`로 기록합니다. `OFFICIAL_DIRECTORY`는 국회 명부에 수록됐다는 출처 증거이며 플랫폼의 유료 인증 배지를 의미하지 않습니다.
 
 ## 데이터 모델
@@ -93,6 +111,8 @@ SNS만 수동 확인하려면 `POST /admin/ingestion/parliament/social/verify?ma
 - `parliament_record_person`: 원문 레코드와 인물의 연결
 - `parliament_ingestion_checkpoint`: 소스별 다음 페이지와 완료 상태
 - `parliament_source_sync_state`: 소스별 자동 갱신 상태와 마지막 성공 워터마크
+- `parliament_ingestion_run`: 수동·자동 증분 실행의 영구 이력
+- `parliament_ingestion_source_run`: 실행별 전체 API 예정·진행·결과와 처리량
 
 현역 의원은 `국회의원 인적사항` 최신 명부(`nwvrqwxyaytdsfvhu`)에 포함된 의원으로 판정합니다. 단순히 제22대 이력이 있다는 이유만으로 현역 처리하지 않습니다. 조회할 때는 `parliament_current_legislator`와 `parliament_former_legislator` 뷰를 사용합니다.
 
@@ -104,6 +124,7 @@ mariadb parliament < src/main/resources/sql/migrations/003-rebuild-legislator-cl
 mariadb parliament < src/main/resources/sql/migrations/004-parameter-variant-checkpoint-up.sql
 mariadb parliament < src/main/resources/sql/migrations/005-social-account-verification-up.sql
 mariadb parliament < src/main/resources/sql/migrations/006-incremental-watermark-up.sql
+mariadb parliament < src/main/resources/sql/migrations/007-ingestion-run-history-up.sql
 ```
 
 재분류 SQL은 파생 테이블만 트랜잭션 안에서 다시 만들며 반복 실행할 수 있습니다. 최신 명부 API를 완전 적재한 뒤 실행해야 합니다.

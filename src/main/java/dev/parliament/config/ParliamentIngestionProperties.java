@@ -12,6 +12,8 @@ public class ParliamentIngestionProperties {
     private int maxPagesPerRun = 1000;
     private int currentAssemblyNumber = 22;
     private boolean automaticEnabled;
+    private String incrementalCron = "0 0 4 * * *";
+    private String incrementalZone = "Asia/Seoul";
     private int incrementalPageSize = 100;
     private int incrementalMaxPages = 1000;
     private boolean socialVerificationEnabled = true;
@@ -45,6 +47,20 @@ public class ParliamentIngestionProperties {
     public void setCaCertificatePath(String caCertificatePath) { this.caCertificatePath = caCertificatePath; }
     public boolean isAutomaticEnabled() { return automaticEnabled; }
     public void setAutomaticEnabled(boolean automaticEnabled) { this.automaticEnabled = automaticEnabled; }
+    public String getIncrementalCron() { return incrementalCron; }
+    public void setIncrementalCron(String incrementalCron) {
+        if (incrementalCron == null || incrementalCron.isBlank()) {
+            throw new IllegalArgumentException("incrementalCron is required");
+        }
+        this.incrementalCron = incrementalCron;
+    }
+    public String getIncrementalZone() { return incrementalZone; }
+    public void setIncrementalZone(String incrementalZone) {
+        if (incrementalZone == null || incrementalZone.isBlank()) {
+            throw new IllegalArgumentException("incrementalZone is required");
+        }
+        this.incrementalZone = incrementalZone;
+    }
     public int getIncrementalPageSize() { return incrementalPageSize; }
     public void setIncrementalPageSize(int incrementalPageSize) {
         if (incrementalPageSize < 1) throw new IllegalArgumentException("incrementalPageSize must be positive");
