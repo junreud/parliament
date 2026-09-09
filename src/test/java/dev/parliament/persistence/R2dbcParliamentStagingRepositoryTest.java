@@ -83,7 +83,7 @@ class R2dbcParliamentStagingRepositoryTest {
     }
 
     @Test
-    void savesNormalisedPageAndAdvancesCheckpointInOneTransaction() {
+    void savesNormalisedPageAndAdvancesCheckpointInOneTransaction() throws Exception {
         ParliamentSourceDefinition source = new ParliamentSourceDefinition(
                 "allnamember", "ALLNAMEMBER", "국회의원 정보 통합 API", "15126133",
                 ParliamentMediaType.DATA, ParliamentCollectionMode.PAGE, Map.of());
@@ -96,7 +96,7 @@ class R2dbcParliamentStagingRepositoryTest {
                 List.of(social));
         NormalizedParliamentRecord record = new NormalizedParliamentRecord(
                 "A001", "0123456789012345678901234567890123456789",
-                "{\"NAAS_CD\":\"A001\"}", List.of(person));
+                "{\"NAAS_CD\":\"A001\",\"GTELT_ERACO\":\"제21대, 제22대\"}", List.of(person));
 
         StepVerifier.create(repository.savePage(source, List.of(record), 1, 2, false)
                         .then(repository.checkpoint(source.key())))
@@ -134,11 +134,74 @@ class R2dbcParliamentStagingRepositoryTest {
                         .one())
                 .expectNext(1L)
                 .verifyComplete();
+
+        PersonCandidate formerPerson = new PersonCandidate(
+                "assembly-member:a002", "김전직", PersonKind.LEGISLATOR, "A002",
+                "국회의원", "대한민국 국회", PersonResolutionStatus.VERIFIED_EXTERNAL_ID,
+                List.of());
+        NormalizedParliamentRecord formerRecord = new NormalizedParliamentRecord(
+                "A002", "1111111111111111111111111111111111111111",
+                "{\"NAAS_CD\":\"A002\",\"GTELT_ERACO\":\"제20대\"}", List.of(formerPerson));
+        StepVerifier.create(repository.savePage(source, List.of(formerRecord), 3, 3, true))
+                .verifyComplete();
+
+        ParliamentSourceDefinition currentRoster = new ParliamentSourceDefinition(
+                "nwvrqwxyaytdsfvhu", "nwvrqwxyaytdsfvhu", "국회의원 인적사항", null,
+                ParliamentMediaType.DATA, ParliamentCollectionMode.PAGE, Map.of());
+        NormalizedParliamentRecord currentRecord = new NormalizedParliamentRecord(
+                "A001", "2222222222222222222222222222222222222222",
+                "{\"MONA_CD\":\"A001\",\"UNITS\":\"제21대, 제22대\"}", List.of(person));
+        StepVerifier.create(repository.savePage(currentRoster, List.of(currentRecord), 1, 1, true))
+                .verifyComplete();
+
+        try (var connection = DriverManager.getConnection(jdbcUrl, username, password)) {
+            ScriptUtils.executeSqlScript(connection,
+                    new ClassPathResource("sql/migrations/002-legislator-term-status-up.sql"));
+            ScriptUtils.executeSqlScript(connection,
+                    new ClassPathResource("sql/migrations/003-rebuild-legislator-classification.sql"));
+        }
+
+        StepVerifier.create(text("""
+                        SELECT membership_status
+                        FROM parliament_legislator_status
+                        WHERE identity_key = 'assembly-member:a001'
+                        """))
+                .expectNext("CURRENT")
+                .verifyComplete();
+        StepVerifier.create(text("""
+                        SELECT membership_status
+                        FROM parliament_legislator_status
+                        WHERE identity_key = 'assembly-member:a002'
+                        """))
+                .expectNext("FORMER")
+                .verifyComplete();
+        StepVerifier.create(countWhere("parliament_legislator_term",
+                        "identity_key = 'assembly-member:a001'"))
+                .expectNext(2L)
+                .verifyComplete();
+        StepVerifier.create(count("parliament_current_legislator"))
+                .expectNext(1L)
+                .verifyComplete();
+        StepVerifier.create(count("parliament_former_legislator"))
+                .expectNext(1L)
+                .verifyComplete();
     }
 
     private reactor.core.publisher.Mono<Long> count(String table) {
         return databaseClient.sql("SELECT COUNT(*) AS count_value FROM " + table)
                 .map((row, metadata) -> row.get("count_value", Long.class))
+                .one();
+    }
+
+    private reactor.core.publisher.Mono<Long> countWhere(String table, String where) {
+        return databaseClient.sql("SELECT COUNT(*) AS count_value FROM " + table + " WHERE " + where)
+                .map((row, metadata) -> row.get("count_value", Long.class))
+                .one();
+    }
+
+    private reactor.core.publisher.Mono<String> text(String sql) {
+        return databaseClient.sql(sql)
+                .map((row, metadata) -> row.get("membership_status", String.class))
                 .one();
     }
 

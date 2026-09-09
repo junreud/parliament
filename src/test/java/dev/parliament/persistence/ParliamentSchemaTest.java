@@ -16,14 +16,18 @@ class ParliamentSchemaTest {
             String sql = new String(input.readAllBytes(), StandardCharsets.UTF_8);
             assertThat(sql).contains(
                     "CREATE TABLE `parliament_person`",
+                    "CREATE TABLE `parliament_legislator_term`",
+                    "CREATE TABLE `parliament_legislator_status`",
                     "CREATE TABLE `parliament_person_position`",
                     "CREATE TABLE `parliament_social_account`",
                     "CREATE TABLE `parliament_source_record`",
                     "CREATE TABLE `parliament_record_person`",
                     "CREATE TABLE `parliament_ingestion_checkpoint`");
+            assertThat(sql).contains(
+                    "CREATE VIEW `parliament_current_legislator`",
+                    "CREATE VIEW `parliament_former_legislator`");
             assertThat(sql).contains("`raw_payload` json NOT NULL");
             assertThat(sql).doesNotContain("api_key", "service_key", "password");
         }
     }
 }
-
