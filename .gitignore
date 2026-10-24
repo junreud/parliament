@@ -19,7 +19,10 @@ graphify-out/
 *.tfstate*
 *.tfvars
 !*.tfvars.example
-**/coverage/
+/coverage/
+/web/coverage/
+/mobile/coverage/
+/worker/coverage/
 **/test-results/
 **/playwright-report/
 
