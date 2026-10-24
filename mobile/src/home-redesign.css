@@ -297,6 +297,14 @@
   margin-top: 6px;
 }
 
+.home-screen .home-radar {
+  margin-block: 8px 4px;
+}
+
+.home-screen .home-radar .empty-state {
+  padding-block: 4px;
+}
+
 .home-screen .home-news {
   margin: 15px 0 22px;
   border: 1px solid #e1e8f0;
