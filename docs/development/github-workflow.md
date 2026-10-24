@@ -37,7 +37,7 @@ git push -u origin HEAD
 PR과 개발 브랜치 push에서 다음 검사를 실행합니다.
 
 - Repository hygiene: 비공개 경로·예시 초기화·Git 이력 비밀키 검사
-- Java tests: JDK17, Gradle 테스트·애플리케이션 빌드, 격리된 Testcontainers
+- Java tests: JDK17, Gradle check·라인 커버리지 80%·애플리케이션 빌드, 격리된 Testcontainers
 - Python tests: lock 파일 기반 worker 검사와 운영 도구 합성 검사
 - Web checks: 의존성 보안 검사·단위 검사·타입 검사·Next.js 빌드
 - Mobile checks: 의존성 보안 검사·단위 검사·Vite 빌드·Chromium 흐름 검사
