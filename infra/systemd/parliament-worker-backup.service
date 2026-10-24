@@ -1,0 +1,10 @@
+[Unit]
+Description=Private worker ledgers and original index backup
+After=docker.service
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/parliament
+EnvironmentFile=/opt/parliament/.env
+UMask=0077
+TimeoutStartSec=10min
+ExecStart=/usr/bin/flock --wait 120 /run/parliament-worker.lock /usr/bin/python3.11 scripts/worker_backup.py backup --source .local/worker --directory .local/worker-backups --upload --s3-prefix ${PARLIAMENT_BACKUP_PREFIX}/worker

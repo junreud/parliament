@@ -1,0 +1,10 @@
+[Unit]
+Description=Private Parliament database backup
+After=docker.service
+[Service]
+Type=oneshot
+TimeoutStartSec=10min
+WorkingDirectory=/opt/parliament
+EnvironmentFile=/opt/parliament/.env
+UMask=0077
+ExecStart=/usr/bin/python3.11 scripts/database_backup.py backup --compose-file compose.production.yml --compose-binary /opt/parliament/bin/docker-compose --s3-prefix ${PARLIAMENT_BACKUP_PREFIX}

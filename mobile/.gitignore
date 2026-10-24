@@ -1,0 +1,9 @@
+dist/
+artifacts/
+test-results/
+playwright-report/
+.local/
+*.jks
+*.keystore
+.env*
+!.env.example

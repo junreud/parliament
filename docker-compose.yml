@@ -7,15 +7,57 @@ services:
       MYSQL_PASSWORD: ${PARLIAMENT_DB_PASSWORD:?set PARLIAMENT_DB_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${PARLIAMENT_DB_ROOT_PASSWORD:?set PARLIAMENT_DB_ROOT_PASSWORD}
     ports:
-      - "3307:3306"
+      - "127.0.0.1:3307:3306"
     volumes:
       - parliament_mysql:/var/lib/mysql
       - ./src/main/resources/sql/schema-parliament.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
+      - ./src/main/resources/sql/schema-tracking.sql:/docker-entrypoint-initdb.d/002-tracking.sql:ro
+      - ./src/main/resources/sql/schema-metrics.sql:/docker-entrypoint-initdb.d/003-metrics.sql:ro
+      - ./src/main/resources/sql/schema-knowledge.sql:/docker-entrypoint-initdb.d/004-knowledge.sql:ro
+      - ./src/main/resources/sql/schema-beta.sql:/docker-entrypoint-initdb.d/005-beta.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD"]
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$$MYSQL_ROOT_PASSWORD\" mysqladmin ping -h localhost -uroot --silent"]
       interval: 5s
       timeout: 3s
       retries: 20
+
+  backend:
+    build: .
+    profiles: ["app"]
+    environment:
+      PARLIAMENT_DB_URL: r2dbc:mysql://mysql:3306/parliament
+      PARLIAMENT_DB_USER: parliament
+      PARLIAMENT_DB_PASSWORD: ${PARLIAMENT_DB_PASSWORD:?set PARLIAMENT_DB_PASSWORD}
+      TRACKING_ENABLED: "true"
+      KNOWLEDGE_ENABLED: ${KNOWLEDGE_ENABLED:-false}
+      TRACKING_ADMIN_KEY: ${TRACKING_ADMIN_KEY:?set TRACKING_ADMIN_KEY}
+      TRACKING_PUBLIC_BASE_URL: ${TRACKING_PUBLIC_BASE_URL:-http://localhost:3000}
+      PARLIAMENT_INGESTION_ENABLED: ${PARLIAMENT_INGESTION_ENABLED:-false}
+      PARLIAMENT_INGESTION_WRITE_ENABLED: ${PARLIAMENT_INGESTION_WRITE_ENABLED:-false}
+      PARLIAMENT_INGESTION_API_KEY: ${PARLIAMENT_INGESTION_API_KEY:-}
+      PARLIAMENT_INGESTION_ADMIN_KEY: ${PARLIAMENT_INGESTION_ADMIN_KEY:-}
+      PARLIAMENT_AUTOMATIC_SYNC_ENABLED: ${PARLIAMENT_AUTOMATIC_SYNC_ENABLED:-false}
+      PARLIAMENT_INCREMENTAL_SOURCE_KEYS: ${PARLIAMENT_INCREMENTAL_SOURCE_KEYS:-}
+      PARLIAMENT_DAILY_SOURCE_KEYS: ${PARLIAMENT_DAILY_SOURCE_KEYS:-}
+      PARLIAMENT_RECONCILIATION_ENABLED: ${PARLIAMENT_RECONCILIATION_ENABLED:-false}
+      PARLIAMENT_INCREMENTAL_CRON: ${PARLIAMENT_INCREMENTAL_CRON:-0 0 4 * * *}
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build: ./web
+    profiles: ["app"]
+    environment:
+      BACKEND_URL: http://backend:8080
+      PUBLIC_BASE_URL: ${TRACKING_PUBLIC_BASE_URL:-http://localhost:3000}
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on: [backend]
+    restart: unless-stopped
 
 volumes:
   parliament_mysql:

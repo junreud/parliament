@@ -210,6 +210,14 @@ public class R2dbcParliamentStagingRepository implements ParliamentStagingReposi
         return distinctRawValues(sourceKey, field, changedSince, limit);
     }
 
+    @Override
+    public Flux<String> distinctRawValuesForChildRefresh(
+            String sourceKey, String field, Instant changedSince, int limit
+    ) {
+        return new ParliamentChildRefreshRepository(databaseClient)
+                .values(sourceKey, field, changedSince, limit);
+    }
+
     private Flux<String> distinctRawValues(
             String sourceKey,
             String field,
@@ -547,7 +555,7 @@ public class R2dbcParliamentStagingRepository implements ParliamentStagingReposi
                           terms.term_label, record.source_key, record.record_key
                         FROM parliament_source_record record
                         JOIN parliament_person_identifier identifier
-                          ON identifier.identifier_namespace = 'OPEN_ASSEMBLY_MEMBER'
+                          ON identifier.identifier_namespace = 'OPEN_ASSEMBLY_NAAS_CD'
                          AND identifier.external_id = JSON_UNQUOTE(JSON_EXTRACT(record.raw_payload, '$.NAAS_CD'))
                         JOIN JSON_TABLE(
                           CONCAT('["', REPLACE(REPLACE(
@@ -568,7 +576,7 @@ public class R2dbcParliamentStagingRepository implements ParliamentStagingReposi
                           terms.term_label, record.source_key, record.record_key
                         FROM parliament_source_record record
                         JOIN parliament_person_identifier identifier
-                          ON identifier.identifier_namespace = 'OPEN_ASSEMBLY_MEMBER'
+                          ON identifier.identifier_namespace = 'OPEN_ASSEMBLY_MONA_CD'
                          AND identifier.external_id = JSON_UNQUOTE(JSON_EXTRACT(record.raw_payload, '$.MONA_CD'))
                         JOIN JSON_TABLE(
                           CONCAT('["', REPLACE(REPLACE(
@@ -590,6 +598,10 @@ public class R2dbcParliamentStagingRepository implements ParliamentStagingReposi
                         LEFT JOIN parliament_legislator_term term
                           ON term.identity_key = person.identity_key
                         WHERE person.person_kind = 'LEGISLATOR'
+                          AND EXISTS (SELECT 1 FROM parliament_person_identifier typed
+                                      WHERE typed.identity_key = person.identity_key
+                                        AND typed.identifier_namespace IN
+                                          ('OPEN_ASSEMBLY_NAAS_CD', 'OPEN_ASSEMBLY_MONA_CD'))
                         GROUP BY person.identity_key
                         """))
                 .then(execute("""
@@ -600,7 +612,7 @@ public class R2dbcParliamentStagingRepository implements ParliamentStagingReposi
                                MAX(term.assembly_term), record.source_key, record.record_key
                         FROM parliament_source_record record
                         JOIN parliament_person_identifier identifier
-                          ON identifier.identifier_namespace = 'OPEN_ASSEMBLY_MEMBER'
+                          ON identifier.identifier_namespace = 'OPEN_ASSEMBLY_MONA_CD'
                          AND identifier.external_id = JSON_UNQUOTE(JSON_EXTRACT(record.raw_payload, '$.MONA_CD'))
                         LEFT JOIN parliament_legislator_term term
                           ON term.identity_key = identifier.identity_key
@@ -642,7 +654,8 @@ public class R2dbcParliamentStagingRepository implements ParliamentStagingReposi
                 .bind("rawPayload", record.rawJson());
         recordInsert = bindNullable(recordInsert, "dataGoKrId", source.dataGoKrId(), String.class);
 
-        return recordInsert.fetch().rowsUpdated()
+        return new ParliamentSourceVersionRepository(databaseClient).archive(source, record)
+                .then(recordInsert.fetch().rowsUpdated())
                 .thenMany(Flux.fromIterable(record.people())
                         .concatMap(person -> savePerson(source, record, person)))
                 .then();
@@ -652,6 +665,14 @@ public class R2dbcParliamentStagingRepository implements ParliamentStagingReposi
             ParliamentSourceDefinition source,
             NormalizedParliamentRecord record,
             PersonCandidate person
+    ) {
+        var identifiers = new ParliamentPersonIdentifierRepository(databaseClient);
+        return identifiers.resolve(person).flatMap(resolved -> saveResolvedPerson(source, record, resolved, identifiers));
+    }
+
+    private Mono<Void> saveResolvedPerson(
+            ParliamentSourceDefinition source, NormalizedParliamentRecord record, PersonCandidate person,
+            ParliamentPersonIdentifierRepository identifiers
     ) {
         Mono<Void> personWrite = databaseClient.sql("""
                         INSERT INTO parliament_person
@@ -669,17 +690,7 @@ public class R2dbcParliamentStagingRepository implements ParliamentStagingReposi
                 .bind("resolutionStatus", person.resolutionStatus().name())
                 .fetch().rowsUpdated().then();
 
-        Mono<Void> identifierWrite = person.sourcePersonId() == null
-                ? Mono.empty()
-                : databaseClient.sql("""
-                                INSERT INTO parliament_person_identifier
-                                  (identifier_namespace, external_id, identity_key)
-                                VALUES ('OPEN_ASSEMBLY_MEMBER', :externalId, :identityKey)
-                                ON DUPLICATE KEY UPDATE identity_key = VALUES(identity_key)
-                                """)
-                        .bind("externalId", person.sourcePersonId())
-                        .bind("identityKey", person.identityKey())
-                        .fetch().rowsUpdated().then();
+        Mono<Void> identifierWrite = identifiers.register(person, source.key(), record.recordKey());
 
         Mono<Void> positionWrite = savePosition(source, record, person);
         Mono<Void> socialWrites = Flux.fromIterable(person.socialAccounts())

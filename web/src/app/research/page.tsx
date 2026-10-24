@@ -1,0 +1,5 @@
+import type { Metadata } from "next";
+export const metadata: Metadata = { title: "서비스 검증과 구독 방향" };
+export default function ResearchPage() {
+  return <article className="prose"><p className="eyebrow">Service research</p><h1>반복해서 확인할 가치부터 검증합니다</h1><p>지금은 무료 베타를 준비하는 단계입니다. 관심 대상을 등록하고 다음 변화를 다시 확인하는 경험이 도움이 되는지 살펴봅니다.</p><div className="info-grid"><section className="detail-section"><h2>무료 기본 서비스</h2><p>공개 기록, 기본 검색, 원문 근거, 관심 추적과 주간 묶음은 기본 경험으로 제공합니다.</p></section><section className="detail-section"><h2>개인 구독 가설</h2><p>많은 관심 대상, 세밀한 변경 알림, 비교·내보내기와 맞춤 보고서의 가치를 검증할 예정입니다.</p><p className="price-hypothesis">월 4,900원 / 9,900원</p><p>가격 실험을 위한 후보이며 실제 상품이나 결제 요금이 아닙니다.</p></section></div><section><h2>기관 시범</h2><p>정책 담당자·협회·언론이 산업별 법안과 정책의 변화를 확인하는 데 얼마나 시간을 쓰는지 조사하고, 필요한 보고서로 지불 의사를 검증합니다. 기관마다 별도 수집기를 만드는 주문형 개발은 초기 상품에 포함하지 않습니다.</p></section><section><h2>좋은 지표는 다음 방문입니다</h2><p>관심 대상 등록과 관련 사건 상세 열람을 시작점으로, 4주 뒤에도 기록을 다시 확인하는지 관찰합니다. 단순 조회수보다 관련성과 이해 가능성, 실제로 줄인 조사 시간을 확인합니다.</p></section></article>;
+}

@@ -16,6 +16,9 @@ public class ParliamentIngestionProperties {
     private String incrementalZone = "Asia/Seoul";
     private int incrementalPageSize = 100;
     private int incrementalMaxPages = 1000;
+    private java.util.List<String> incrementalSourceKeys = java.util.List.of();
+    private java.util.List<String> dailySourceKeys = java.util.List.of();
+    private boolean reconciliationEnabled;
     private boolean socialVerificationEnabled = true;
     private int socialVerificationMaxAgeDays = 7;
     private int socialVerificationBatchSize = 200;
@@ -67,6 +70,18 @@ public class ParliamentIngestionProperties {
         this.incrementalPageSize = incrementalPageSize;
     }
     public int getIncrementalMaxPages() { return incrementalMaxPages; }
+    public java.util.List<String> getDailySourceKeys() { return dailySourceKeys; }
+    public void setDailySourceKeys(java.util.List<String> sourceKeys) {
+        dailySourceKeys = sourceKeys == null ? java.util.List.of() : sourceKeys.stream()
+                .filter(key -> key != null && !key.isBlank()).map(String::trim).distinct().toList();
+    }
+    public boolean isReconciliationEnabled() { return reconciliationEnabled; }
+    public void setReconciliationEnabled(boolean enabled) { reconciliationEnabled = enabled; }
+    public java.util.List<String> getIncrementalSourceKeys() { return incrementalSourceKeys; }
+    public void setIncrementalSourceKeys(java.util.List<String> sourceKeys) {
+        this.incrementalSourceKeys = sourceKeys == null ? java.util.List.of() : sourceKeys.stream()
+                .filter(key -> key != null && !key.isBlank()).map(String::trim).distinct().toList();
+    }
     public void setIncrementalMaxPages(int incrementalMaxPages) {
         if (incrementalMaxPages < 1) throw new IllegalArgumentException("incrementalMaxPages must be positive");
         this.incrementalMaxPages = incrementalMaxPages;

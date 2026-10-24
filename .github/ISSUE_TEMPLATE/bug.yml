@@ -1,0 +1,19 @@
+name: 오류 신고
+description: 재현 가능한 기능·표현·자료 연결 오류를 기록합니다.
+title: '[bug] '
+body:
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 재현 절차·기대한 결과·실제 결과
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: 기기·브라우저·앱 버전
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 공개 가능한 증거와 영향 범위
+      description: 비밀키·비공개 자료·개인별 정치 관심·연락처를 첨부하지 마세요.

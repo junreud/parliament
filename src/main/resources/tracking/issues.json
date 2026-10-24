@@ -1,0 +1,13 @@
+[
+ {"id":"rental-protection","title":"임차인 보호","topic":"housing","description":"전월세 계약과 임차인 권리의 변화를 추적합니다."},
+ {"id":"housing-supply","title":"주택 공급","topic":"housing","description":"주택 공급과 정비사업 관련 기록을 모읍니다."},
+ {"id":"housing-finance","title":"주거 금융","topic":"housing","description":"주거 지원과 대출 관련 공개 기록을 추적합니다."},
+ {"id":"working-hours","title":"노동시간","topic":"labor","description":"근로시간과 휴식 관련 입법과 발표를 추적합니다."},
+ {"id":"employment-protection","title":"고용 보호","topic":"labor","description":"고용 안정과 노동자 보호의 변화를 추적합니다."},
+ {"id":"workplace-safety","title":"일터 안전","topic":"labor","description":"산업재해 예방과 일터 안전 관련 기록을 모읍니다."},
+ {"id":"income-tax","title":"소득세","topic":"economy-tax","description":"소득 과세 관련 입법과 발표를 추적합니다."},
+ {"id":"small-business","title":"소상공인 지원","topic":"economy-tax","description":"소상공인 지원 제도의 변화를 추적합니다."},
+ {"id":"public-finance","title":"재정 운용","topic":"economy-tax","description":"국가 재정과 예산 관련 공개 기록을 추적합니다."},
+ {"id":"consumer-protection","title":"소비자 보호","topic":"economy-tax","description":"소비자 권리와 시장 규칙의 변화를 추적합니다."},
+ {"id":"child-support-advance","title":"양육비 선지급제","topic":"family","description":"운영자가 선정한 원발의안·위원회 대안·시행과 후속 공식 발표를 근거와 함께 추적합니다."}
+]

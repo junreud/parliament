@@ -1,0 +1,8 @@
+[Unit]
+Description=Consume and archive original versions
+[Timer]
+OnBootSec=6min
+OnUnitActiveSec=5min
+Unit=parliament-worker@consume.service
+[Install]
+WantedBy=timers.target

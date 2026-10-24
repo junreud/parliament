@@ -111,10 +111,25 @@ public class ParliamentIngestionService {
         return synchronize(request, IngestionTrigger.AUTOMATIC, clock.instant());
     }
 
+    public Mono<ParliamentSyncReport> reconcile(ParliamentIngestionRequest request) {
+        return synchronize(request, IngestionTrigger.MANUAL, null, true);
+    }
+
+    public Mono<ParliamentSyncReport> reconcileAutomatically(ParliamentIngestionRequest request) {
+        return synchronize(request, IngestionTrigger.AUTOMATIC, clock.instant(), true);
+    }
+
     private Mono<ParliamentSyncReport> synchronize(
             ParliamentIngestionRequest request,
             IngestionTrigger trigger,
             Instant scheduledFor
+    ) {
+        return synchronize(request, trigger, scheduledFor, false);
+    }
+
+    private Mono<ParliamentSyncReport> synchronize(
+            ParliamentIngestionRequest request, IngestionTrigger trigger,
+            Instant scheduledFor, boolean fullRefresh
     ) {
         validateWriteRequest(request);
         Instant startedAt = clock.instant();
@@ -124,7 +139,7 @@ public class ParliamentIngestionService {
                 .flatMap(runId -> Flux.fromIterable(sources)
                         .concatMap(source -> repository.markSourceRunStarted(
                                         runId, source.key(), clock.instant())
-                                .then(synchronizeSource(source, request))
+                                .then(synchronizeSource(source, request, fullRefresh))
                                 .flatMap(report -> repository.completeSourceRun(
                                                 runId, source.key(), completion(report))
                                         .thenReturn(report)))
@@ -205,14 +220,15 @@ public class ParliamentIngestionService {
 
     private Mono<ParliamentSyncSourceReport> synchronizeSource(
             ParliamentSourceDefinition source,
-            ParliamentIngestionRequest request
+            ParliamentIngestionRequest request,
+            boolean fullRefresh
     ) {
         Instant observedSince = clock.instant();
         return repository.lastSuccessfulSyncAt(source.key())
                 .map(Optional::of)
                 .defaultIfEmpty(Optional.empty())
                 .flatMap(previous -> repository.markSourceSyncStarted(source.key(), observedSince)
-                        .thenMany(previous
+                        .thenMany(fullRefresh ? parameterResolver.resolveAll(source) : previous
                                 .map(watermark -> parameterResolver.resolveChanged(source, watermark))
                                 .orElseGet(() -> parameterResolver.resolveAll(source)))
                         .concatMap(resolved -> repository.resetCheckpoint(source.key(), resolved.variantKey())
@@ -221,7 +237,7 @@ public class ParliamentIngestionService {
                         .collectList()
                         .map(variants -> aggregateSync(
                                 source, variants,
-                                previous.isPresent() && parameterResolver.dependsOnSourceRecords(source))))
+                                !fullRefresh && previous.isPresent() && parameterResolver.dependsOnSourceRecords(source))))
                 .flatMap(report -> report.complete()
                                 && AUTHORITATIVE_SNAPSHOT_SOURCES.contains(source.key())
                         ? repository.finalizeSourceSnapshot(source.key(), observedSince)

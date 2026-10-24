@@ -1,0 +1,22 @@
+#!/bin/bash
+set -euo pipefail
+umask 077
+dnf install -y docker python3.11
+systemctl enable --now docker
+install -d -m 700 /opt/parliament
+cd /opt/parliament
+aws s3 cp '${artifact}' /opt/parliament/release.tar.gz --region ap-northeast-2
+echo '${sha}  /opt/parliament/release.tar.gz' | sha256sum --check --status
+tar --no-same-owner -xzf /opt/parliament/release.tar.gz
+aws ssm get-parameter --name '${parameter}' --with-decryption --query Parameter.Value --output text --region ap-northeast-2 > .env
+chmod 600 .env
+printf '\nPARLIAMENT_RAW_BUCKET=${evidence}\nPARLIAMENT_PROCESSING_QUEUE_URL=${queue}\nPARLIAMENT_BACKUP_PREFIX=s3://${evidence}/backups\n' >> .env
+aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin '${registry}'
+# The reviewed artifact must contain a pinned Docker Compose plugin and immutable image digests.
+test -x ./bin/docker-compose
+./bin/docker-compose --env-file .env -f compose.production.yml up -d
+install -d -m 700 -o 10001 -g 10001 /opt/parliament/.local/worker
+cp infra/systemd/*.service infra/systemd/*.timer /etc/systemd/system/
+systemctl daemon-reload
+# Backups start immediately; source/model/mail jobs require verified configuration and explicit enablement.
+systemctl enable --now parliament-backup.timer parliament-worker-backup.timer

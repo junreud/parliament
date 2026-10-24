@@ -1,0 +1,8 @@
+[Unit]
+Description=Daily Parliament digest queue
+[Timer]
+OnCalendar=*-*-* 23:00:00 UTC
+Persistent=true
+Unit=parliament-digest@daily.service
+[Install]
+WantedBy=timers.target

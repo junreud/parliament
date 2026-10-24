@@ -1,0 +1,29 @@
+[Unit]
+Description=Continuous Parliament GraphRAG inference and private operator API
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/parliament
+Environment=PYTHONPATH=/opt/parliament/worker/src
+EnvironmentFile=/opt/parliament/.local/graphrag/inference.env
+UMask=0077
+ExecStart=/opt/parliament/worker/.venv/bin/python -m parliament_worker.cli graphrag work --state /opt/parliament/.local/graphrag/state --input /opt/parliament/.local/current-roster/verified-state/knowledge-batches --input /opt/parliament/.local/knowledge-pilot/ready-for-review.json --send --forever --retry-output-failures --concurrency 64 --daily-jobs 0 --daily-tokens 0 --max-operations 64 --poll-seconds 0.25 --plan-seconds 5 --api-port 18790
+Restart=on-failure
+RestartSec=20
+KillSignal=SIGTERM
+TimeoutStopSec=45
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+
+[Install]
+WantedBy=multi-user.target

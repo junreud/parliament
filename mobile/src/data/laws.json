@@ -1,0 +1,144 @@
+{
+  "items": [
+    {
+      "id": "law_013103_286729",
+      "lawId": "013103",
+      "mst": "286729",
+      "title": "아동수당법",
+      "agency": "보건복지부",
+      "promulgationNumber": "21777",
+      "promulgatedDate": "2026-06-09",
+      "effectiveDate": "2026-09-10",
+      "collectedAt": "2026-10-09T08:40:53.090459Z",
+      "sourceUrl": "https://www.law.go.kr/LSW/lsInfoP.do?lsiSeq=286729",
+      "sourceVersion": "f96c8bd85c1b53dd11d62cc1a537487fa34a971ebebdaa7744450d43be3496d8",
+      "extractionVersion": "law_public_metadata_3b5cc2ec7d183d235a8c2376b520ca60df0646161a14c0f9f041d9438c2d5cb9",
+      "evidence": [
+        {
+          "label": "법령명",
+          "text": "아동수당법",
+          "locator": "json:법령.기본정보.법령명_한글"
+        },
+        {
+          "label": "법령 ID",
+          "text": "013103",
+          "locator": "json:법령.기본정보.법령ID"
+        },
+        {
+          "label": "공포일",
+          "text": "20260609",
+          "locator": "json:법령.기본정보.공포일자"
+        },
+        {
+          "label": "시행일",
+          "text": "20260910",
+          "locator": "json:법령.기본정보.시행일자"
+        },
+        {
+          "label": "공포번호",
+          "text": "21777",
+          "locator": "json:법령.기본정보.공포번호"
+        },
+        {
+          "label": "소관부처",
+          "text": "보건복지부",
+          "locator": "json:법령.기본정보.소관부처.content"
+        }
+      ]
+    },
+    {
+      "id": "law_013126_289533",
+      "lawId": "013126",
+      "mst": "289533",
+      "title": "아동수당법 시행령",
+      "agency": "보건복지부",
+      "promulgationNumber": "36668",
+      "promulgatedDate": "2026-09-09",
+      "effectiveDate": "2026-09-10",
+      "collectedAt": "2026-10-09T08:40:53.090459Z",
+      "sourceUrl": "https://www.law.go.kr/LSW/lsInfoP.do?lsiSeq=289533",
+      "sourceVersion": "5fecd653625bae5e97ab662f9741caf44cb986eca417e4e43e3dad678e7df8cc",
+      "extractionVersion": "law_public_metadata_3213fc35d53b6faedb312fc9190a488d1580923f5dae5b7c2284ad858f8b6356",
+      "evidence": [
+        {
+          "label": "법령명",
+          "text": "아동수당법 시행령",
+          "locator": "json:법령.기본정보.법령명_한글"
+        },
+        {
+          "label": "법령 ID",
+          "text": "013126",
+          "locator": "json:법령.기본정보.법령ID"
+        },
+        {
+          "label": "공포일",
+          "text": "20260909",
+          "locator": "json:법령.기본정보.공포일자"
+        },
+        {
+          "label": "시행일",
+          "text": "20260910",
+          "locator": "json:법령.기본정보.시행일자"
+        },
+        {
+          "label": "공포번호",
+          "text": "36668",
+          "locator": "json:법령.기본정보.공포번호"
+        },
+        {
+          "label": "소관부처",
+          "text": "보건복지부",
+          "locator": "json:법령.기본정보.소관부처.content"
+        }
+      ]
+    },
+    {
+      "id": "law_013145_289769",
+      "lawId": "013145",
+      "mst": "289769",
+      "title": "아동수당법 시행규칙",
+      "agency": "보건복지부",
+      "promulgationNumber": "01200",
+      "promulgatedDate": "2026-09-10",
+      "effectiveDate": "2026-09-10",
+      "collectedAt": "2026-10-09T08:40:53.090459Z",
+      "sourceUrl": "https://www.law.go.kr/LSW/lsInfoP.do?lsiSeq=289769",
+      "sourceVersion": "074ce56e158ff532c6e283c013e9dc02683774ec28f65eb662ab0e65e138bb5e",
+      "extractionVersion": "law_public_metadata_bcb6bd5ce6597b6f4fb18d88b677b61763ec72840ad418d7208ef3c392d74989",
+      "evidence": [
+        {
+          "label": "법령명",
+          "text": "아동수당법 시행규칙",
+          "locator": "json:법령.기본정보.법령명_한글"
+        },
+        {
+          "label": "법령 ID",
+          "text": "013145",
+          "locator": "json:법령.기본정보.법령ID"
+        },
+        {
+          "label": "공포일",
+          "text": "20260910",
+          "locator": "json:법령.기본정보.공포일자"
+        },
+        {
+          "label": "시행일",
+          "text": "20260910",
+          "locator": "json:법령.기본정보.시행일자"
+        },
+        {
+          "label": "공포번호",
+          "text": "01200",
+          "locator": "json:법령.기본정보.공포번호"
+        },
+        {
+          "label": "소관부처",
+          "text": "보건복지부",
+          "locator": "json:법령.기본정보.소관부처.content"
+        }
+      ]
+    }
+  ],
+  "coverage": "공개 검수된 법령 기본정보 중 최대 50건입니다. 전체 법령을 수집한 목록이 아니며, 시행 상태·정책 효과를 판단하지 않습니다.",
+  "nextCursor": null
+}

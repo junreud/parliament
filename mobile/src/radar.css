@@ -1,0 +1,344 @@
+.radar-entry {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  text-align: left;
+  padding: 18px 16px;
+  border: 1px solid var(--line, #e3e7ec);
+  border-radius: 16px;
+  background: #fff;
+  margin: 16px 0 22px;
+  color: #17232f;
+}
+.radar-entry > span:nth-child(2) {
+  flex: 1;
+}
+.radar-entry strong,
+.radar-entry small {
+  display: block;
+}
+.radar-entry strong {
+  font-size: 16px;
+  font-weight: 750;
+  margin-bottom: 5px;
+}
+.radar-entry small {
+  font-size: 11px;
+  line-height: 1.5;
+  color: #66717d;
+}
+.radar-mark {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: #eef3fa;
+  color: #315d8f;
+}
+.radar-screen {
+  padding-bottom: 30px;
+}
+.home-radar {
+  margin: 12px 0 8px;
+  padding-bottom: 0;
+  border-bottom: 1px solid var(--line);
+}
+.home-radar .screen-title {
+  margin: 0 0 6px;
+  padding: 0;
+}
+.home-radar .screen-title .eyebrow {
+  font-size: 10px;
+}
+.home-radar .screen-title h1 {
+  font-size: 23px;
+  margin: 2px 0;
+  line-height: 1.35;
+}
+.home-radar .screen-title p {
+  font-size: 11px;
+  margin: 0;
+}
+.home-radar .radar-meta {
+  font-size: 10px;
+  padding-bottom: 4px;
+  gap: 4px;
+}
+.home-radar .radar-card {
+  gap: 8px;
+  min-height: 48px;
+  padding: 7px 0;
+}
+.home-radar .radar-card small {
+  font-size: 11px;
+  margin: 0;
+}
+.home-radar .radar-card strong {
+  font-size: 14px;
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.home-radar-all {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 44px;
+  background: #fff;
+  color: var(--blue);
+  font-size: 12px;
+  padding: 5px 0;
+}
+.home-radar .empty-state {
+  margin: 0;
+  padding: 10px 0;
+  text-align: left;
+}
+.home-radar .empty-state h2 {
+  font-size: 15px;
+}
+.home-radar .empty-state p,
+.home-radar .radar-warning {
+  font-size: 12px;
+  margin: 4px 0;
+}
+.home-radar .radar-notice {
+  font-size: 11px;
+  line-height: 1.5;
+  padding: 4px 0;
+}
+.home-radar .empty-state .secondary-button {
+  margin-top: 6px;
+}
+.app-shell[data-font-size="large"] .home-radar .radar-card strong {
+  font-size: 18px;
+}
+.app-shell[data-font-size="large"] .home-radar .radar-card small {
+  font-size: 13px;
+}
+.reviewed-issue-entry {
+  border-bottom: 1px solid var(--line);
+  padding: 0 0 28px;
+  margin: 0 0 32px;
+}
+.reviewed-issue-entry h2 {
+  font-size: 18px;
+  margin: 8px 0 18px;
+}
+.reviewed-issue-entry .person-card {
+  justify-content: space-between;
+  gap: 16px;
+}
+.reviewed-issue-entry .person-card > span {
+  min-width: 0;
+}
+.reviewed-issue-entry strong {
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.reviewed-issue-entry small {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 10px;
+}
+.radar-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #637083;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e9ee;
+}
+.radar-notice {
+  font-size: 13px;
+  line-height: 1.8;
+  color: #566272;
+  padding: 16px 0;
+  margin: 0;
+}
+.radar-warning {
+  background: #fff6e4;
+  border: 1px solid #efddb9;
+  border-radius: 12px;
+  padding: 13px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #70531b;
+}
+.radar-list {
+  border-top: 1px solid #d9dfe7;
+}
+.radar-card {
+  width: 100%;
+  display: flex;
+  gap: 13px;
+  padding: 23px 0;
+  border: 0;
+  border-bottom: 1px solid #e5e9ee;
+  background: transparent;
+  text-align: left;
+  color: #17232f;
+}
+.radar-number {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: #8190a2;
+  min-width: 22px;
+  padding-top: 3px;
+}
+.radar-card > span:last-child {
+  flex: 1;
+  min-width: 0;
+}
+.radar-card small {
+  font-size: 11px;
+  color: #617187;
+  display: block;
+  margin-bottom: 9px;
+}
+.radar-card strong {
+  font-size: 17px;
+  line-height: 1.65;
+  letter-spacing: -0.4px;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  display: block;
+  font-weight: 700;
+}
+.radar-card > span > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #315d8f;
+  margin-top: 14px;
+}
+.radar-tag {
+  font-size: 11px;
+  background: #eef2f6;
+  padding: 7px 10px;
+  border-radius: 6px;
+  color: #58697d;
+  display: inline-block;
+  margin: 16px 0;
+}
+.radar-detail h2 {
+  font-size: 25px;
+  line-height: 1.6;
+  letter-spacing: -0.7px;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  margin: 8px 0 20px;
+}
+.radar-question {
+  color: #315d8f;
+  font-size: 16px;
+  line-height: 1.8;
+}
+.radar-detail section {
+  margin-top: 28px;
+  padding-top: 23px;
+  border-top: 1px solid #e4e9ef;
+}
+.radar-detail h3 {
+  font-size: 16px;
+  margin: 0 0 12px;
+}
+.radar-detail p,
+.radar-coverage {
+  font-size: 14px;
+  line-height: 1.85;
+  color: #586777;
+}
+.radar-detail .radar-small {
+  font-size: 12px;
+  color: #6d7784;
+}
+.radar-signals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 16px 0;
+}
+.radar-signals span {
+  font-size: 11px;
+  border: 1px solid #dde4ec;
+  border-radius: 20px;
+  padding: 6px 10px;
+}
+.radar-sources {
+  display: grid;
+  gap: 12px;
+}
+.radar-source {
+  display: block;
+  padding: 16px;
+  border: 1px solid #e0e6ee;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #23364c;
+}
+.radar-source > span {
+  font-size: 11px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: #657387;
+}
+.radar-source strong {
+  display: block;
+  font-size: 14px;
+  line-height: 1.8;
+  margin: 10px 0;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.radar-source small {
+  font-size: 11px;
+  color: #315d8f;
+}
+.radar-check {
+  background: #f4f7fa;
+  border-radius: 14px;
+  padding: 20px !important;
+}
+.radar-coverage {
+  margin-top: 30px;
+  border-top: 1px solid #e0e6ed;
+  padding-top: 20px;
+}
+.radar-coverage summary {
+  cursor: pointer;
+  color: #465970;
+  font-size: 13px;
+}
+.radar-coverage p {
+  font-size: 12px;
+}
+.radar-screen button:focus-visible,
+.radar-entry:focus-visible,
+.radar-source:focus-visible {
+  outline: 3px solid #3679bb;
+  outline-offset: 4px;
+}
+.radar-screen .back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  padding: 8px 4px;
+  color: #4c6079;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}

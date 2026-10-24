@@ -1,0 +1,8 @@
+deployment_approved = false
+estimated_monthly_krw = 0
+certificate_arn = "REPLACE_WITH_EXISTING_SEOUL_ACM_CERTIFICATE_ARN"
+runtime_parameter_arn = "REPLACE_WITH_EXISTING_SSM_SECURESTRING_ARN"
+runtime_parameter_name = "/parliament/beta/runtime"
+artifact_bucket = "REPLACE_WITH_PRIVATE_RELEASE_BUCKET"
+artifact_key = "releases/REPLACE_WITH_RELEASE_ID.tar.gz"
+artifact_sha256 = "REPLACE_WITH_REVIEWED_ARTIFACT_SHA256"

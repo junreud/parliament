@@ -1,0 +1,8 @@
+[Unit]
+Description=Daily official government document collection
+[Timer]
+OnCalendar=*-*-* 19:00:00 UTC
+Persistent=true
+Unit=parliament-worker@government.service
+[Install]
+WantedBy=timers.target

@@ -112,6 +112,19 @@ class ParliamentParameterResolverTest {
     }
 
     @Test
+    void refreshesUnchangedActiveBillsForVotesAndCommitteeDecisions() {
+        Instant watermark = Instant.parse("2026-09-08T00:00:00Z");
+        org.mockito.Mockito.lenient().when(valueRepository.distinctRawValuesChangedSince(
+                "billrcp", "BILL_ID", watermark, 100_000)).thenReturn(Flux.empty());
+        org.mockito.Mockito.lenient().when(valueRepository.distinctRawValuesForChildRefresh(
+                "billrcp", "BILL_ID", watermark, 100_000)).thenReturn(Flux.just("unchanged-active-bill"));
+        StepVerifier.create(resolver.resolveChanged(source("nojepdqqaweusdfbi"), watermark))
+                .assertNext(resolved -> assertThat(resolved.fixedParams())
+                        .containsEntry("BILL_ID", "unchanged-active-bill"))
+                .verifyComplete();
+    }
+
+    @Test
     void resolvesTheEmpiricallyVerifiedMemberCodeForTheBrokenEventSpecification() {
         when(valueRepository.distinctRawValues("nwvrqwxyaytdsfvhu", "MONA_CD", 1))
                 .thenReturn(Flux.just("04T3751T"));

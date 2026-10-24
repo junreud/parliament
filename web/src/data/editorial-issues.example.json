@@ -1,0 +1,136 @@
+{
+  "issues": [
+    {
+      "id": "amendment-process-20261017",
+      "title": "합성 해설 1 · 개발 예시",
+      "question": "예시 화면은 어떻게 확인하나요?",
+      "summary": "합성 개발 예시이며 실제 정치 사건의 사실이나 검토 승인을 나타내지 않습니다.",
+      "topic": "개발 예시",
+      "currentStage": "사람 검토 전",
+      "nextTrigger": "운영자가 실제 원고와 근거를 검토한 뒤 공개합니다.",
+      "checkedAt": "2026-01-01",
+      "reviewStatus": "human-review-pending",
+      "background": [
+        "합성 배경 설명입니다."
+      ],
+      "facts": [
+        "합성 화면 검사 문장입니다."
+      ],
+      "claims": [],
+      "unknowns": [
+        "실제 공개 자료는 이 예시에 없습니다."
+      ],
+      "timeline": [
+        {
+          "date": "2026-01-01",
+          "title": "합성 검사 시점",
+          "detail": "실제 사건 발생일이 아닙니다.",
+          "sourceIds": [
+            "synthetic-source"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "synthetic-source",
+          "title": "합성 검사에서 사용하는 공식 사이트 주소",
+          "publisher": "개발 예시",
+          "url": "https://www.law.go.kr/",
+          "publishedAt": "2026-01-01",
+          "locator": "합성 위치",
+          "sourceType": "official-record",
+          "usageNote": "실제 문서의 근거 인용이 아닌 개발 예시입니다."
+        }
+      ],
+      "updates": []
+    },
+    {
+      "id": "yasukuni-statement-20261017",
+      "title": "합성 해설 2 · 개발 예시",
+      "question": "예시 화면은 어떻게 확인하나요?",
+      "summary": "합성 개발 예시이며 실제 정치 사건의 사실이나 검토 승인을 나타내지 않습니다.",
+      "topic": "개발 예시",
+      "currentStage": "사람 검토 전",
+      "nextTrigger": "운영자가 실제 원고와 근거를 검토한 뒤 공개합니다.",
+      "checkedAt": "2026-01-01",
+      "reviewStatus": "human-review-pending",
+      "background": [
+        "합성 배경 설명입니다."
+      ],
+      "facts": [
+        "합성 화면 검사 문장입니다."
+      ],
+      "claims": [],
+      "unknowns": [
+        "실제 공개 자료는 이 예시에 없습니다."
+      ],
+      "timeline": [
+        {
+          "date": "2026-01-01",
+          "title": "합성 검사 시점",
+          "detail": "실제 사건 발생일이 아닙니다.",
+          "sourceIds": [
+            "synthetic-source"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "synthetic-source",
+          "title": "합성 검사에서 사용하는 공식 사이트 주소",
+          "publisher": "개발 예시",
+          "url": "https://www.law.go.kr/",
+          "publishedAt": "2026-01-01",
+          "locator": "합성 위치",
+          "sourceType": "official-record",
+          "usageNote": "실제 문서의 근거 인용이 아닌 개발 예시입니다."
+        }
+      ],
+      "updates": []
+    },
+    {
+      "id": "supreme-court-appointment-20261017",
+      "title": "합성 해설 3 · 개발 예시",
+      "question": "예시 화면은 어떻게 확인하나요?",
+      "summary": "합성 개발 예시이며 실제 정치 사건의 사실이나 검토 승인을 나타내지 않습니다.",
+      "topic": "개발 예시",
+      "currentStage": "사람 검토 전",
+      "nextTrigger": "운영자가 실제 원고와 근거를 검토한 뒤 공개합니다.",
+      "checkedAt": "2026-01-01",
+      "reviewStatus": "human-review-pending",
+      "background": [
+        "합성 배경 설명입니다."
+      ],
+      "facts": [
+        "합성 화면 검사 문장입니다."
+      ],
+      "claims": [],
+      "unknowns": [
+        "실제 공개 자료는 이 예시에 없습니다."
+      ],
+      "timeline": [
+        {
+          "date": "2026-01-01",
+          "title": "합성 검사 시점",
+          "detail": "실제 사건 발생일이 아닙니다.",
+          "sourceIds": [
+            "synthetic-source"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "synthetic-source",
+          "title": "합성 검사에서 사용하는 공식 사이트 주소",
+          "publisher": "개발 예시",
+          "url": "https://www.law.go.kr/",
+          "publishedAt": "2026-01-01",
+          "locator": "합성 위치",
+          "sourceType": "official-record",
+          "usageNote": "실제 문서의 근거 인용이 아닌 개발 예시입니다."
+        }
+      ],
+      "updates": []
+    }
+  ]
+}

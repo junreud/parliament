@@ -13,6 +13,7 @@ public class ParliamentPersonClassifier {
             "국무위원", "정부위원", "비서실장", "수석비서관", "검찰총장", "경찰청장"
     );
 
+    /** Legacy untyped identity entry point. New source normalizers must use the explicit namespace overload. */
     public PersonCandidate classify(
             String name,
             String sourcePersonId,
@@ -20,17 +21,30 @@ public class ParliamentPersonClassifier {
             String organization,
             boolean knownAssemblyMember
     ) {
+        return classify(name, sourcePersonId, "OPEN_ASSEMBLY_MEMBER", positionTitle, organization,
+                knownAssemblyMember, List.of());
+    }
+
+    /** The caller verifies the ID/name field pairing and any roster aliases before classification. */
+    public PersonCandidate classify(
+            String name, String sourcePersonId, String sourcePersonNamespace,
+            String positionTitle, String organization, boolean knownAssemblyMember,
+            List<PersonCandidate.ExternalIdentifier> aliases
+    ) {
         String canonicalName = normalizeName(name);
         if (canonicalName.isBlank()) {
             throw new IllegalArgumentException("person name must not be blank");
         }
 
-        boolean verifiedMember = knownAssemblyMember && sourcePersonId != null && !sourcePersonId.isBlank();
+        boolean verifiedMember = knownAssemblyMember && sourcePersonId != null && !sourcePersonId.isBlank()
+                && sourcePersonNamespace != null && !sourcePersonNamespace.isBlank();
         PersonKind kind = verifiedMember
                 ? PersonKind.LEGISLATOR
                 : isPublicOfficial(positionTitle) ? PersonKind.PUBLIC_OFFICIAL : PersonKind.OTHER;
         String identityKey = verifiedMember
-                ? "assembly-member:" + sourcePersonId.trim().toLowerCase(Locale.ROOT)
+                ? "OPEN_ASSEMBLY_MEMBER".equals(sourcePersonNamespace)
+                    ? "assembly-member:" + sourcePersonId.trim().toLowerCase(Locale.ROOT)
+                    : "assembly-member:" + sourcePersonNamespace + ":" + TextUtil.textSha1(sourcePersonId.trim())
                 : "provisional-person:" + TextUtil.textSha1(String.join("|",
                         canonicalName, identityPart(positionTitle), identityPart(organization)));
 
@@ -38,13 +52,15 @@ public class ParliamentPersonClassifier {
                 identityKey,
                 canonicalName,
                 kind,
-                blankToNull(sourcePersonId),
+                verifiedMember ? blankToNull(sourcePersonId) : null,
                 blankToNull(positionTitle),
                 blankToNull(organization),
                 verifiedMember
                         ? PersonResolutionStatus.VERIFIED_EXTERNAL_ID
                         : PersonResolutionStatus.PROVISIONAL_NAME_MATCH,
-                List.of()
+                List.of(),
+                verifiedMember ? sourcePersonNamespace : null,
+                verifiedMember ? aliases : List.of()
         );
     }
 

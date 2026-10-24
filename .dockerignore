@@ -1,0 +1,12 @@
+.git
+.env
+.local
+.gradle
+build
+graphify-out
+web
+worker
+docs
+infra
+**/node_modules
+**/.venv

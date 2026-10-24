@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-01-01",
+  "runId": "synthetic-clean-clone",
+  "generatedAt": "2026-01-01T00:00:00Z",
+  "lastAttemptAt": "2026-01-01T00:00:00Z",
+  "status": "unavailable",
+  "selectionMethod": "rules-shortlist-human-review",
+  "baselineAvailable": false,
+  "items": [],
+  "sources": [],
+  "shortfall": 10,
+  "notice": "개발용 빈 예시입니다. 실제 뉴스 수집·검수·공개 자료가 없습니다."
+}

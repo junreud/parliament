@@ -1,0 +1,22 @@
+{
+  "campaign_id": "synthetic-test",
+  "timezone": "Asia/Seoul",
+  "start_date": "2026-10-17",
+  "end_date": "2026-11-13",
+  "collector_until": "2026-10-24T00:00:00+09:00",
+  "assets": {
+    "carousel": 10,
+    "reel": 2
+  },
+  "publication": {
+    "start_date": "2026-10-19",
+    "end_date": "2026-11-13",
+    "weekdays": [
+      0,
+      2,
+      4
+    ],
+    "time": "19:30",
+    "daily_limit": 1
+  }
+}

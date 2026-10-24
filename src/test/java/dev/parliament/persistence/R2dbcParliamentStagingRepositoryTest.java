@@ -4,6 +4,8 @@ import dev.parliament.config.ParliamentCollectionMode;
 import dev.parliament.config.ParliamentMediaType;
 import dev.parliament.config.ParliamentSourceDefinition;
 import dev.parliament.domain.NormalizedParliamentRecord;
+import dev.parliament.domain.ParliamentRecordNormalizer;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.parliament.domain.PersonCandidate;
 import dev.parliament.domain.PersonKind;
 import dev.parliament.domain.PersonResolutionStatus;
@@ -43,6 +45,127 @@ class R2dbcParliamentStagingRepositoryTest {
 
     private DatabaseClient databaseClient;
     private R2dbcParliamentStagingRepository repository;
+
+    @Test
+    void persistsTypedExactCaseIdentifiersWithoutMergingOtherSpeakers() {
+        var source = identitySource();
+        var normalizer = new ParliamentRecordNormalizer(new ObjectMapper());
+        var records = List.of(
+                normalizer.normalize(source, Map.of("NAAS_CD", "AbC", "NAAS_NM", "홍길동", "SPEAKER_NM", "김증인")),
+                normalizer.normalize(source, Map.of("NAAS_CD", "abc", "NAAS_NM", "홍길동")));
+        var currentRoster = new ParliamentSourceDefinition("nwvrqwxyaytdsfvhu", "nwvrqwxyaytdsfvhu",
+                "국회의원 인적사항", null, ParliamentMediaType.DATA, ParliamentCollectionMode.PAGE, Map.of());
+        var mona = normalizer.normalize(currentRoster, Map.of("MONA_CD", "AbC", "HG_NM", "김의원"));
+        StepVerifier.create(repository.savePage(source, records, 1, 1, true)
+                .then(repository.savePage(currentRoster, List.of(mona), 1, 1, true))).verifyComplete();
+        StepVerifier.create(count("parliament_person_identifier")).expectNext(3L).verifyComplete();
+        StepVerifier.create(count("parliament_person")).expectNext(4L).verifyComplete();
+        StepVerifier.create(countWhere("parliament_person_identifier",
+                "identifier_namespace = 'OPEN_ASSEMBLY_NAAS_CD' AND external_id = 'AbC'"))
+                .expectNext(1L).verifyComplete();
+    }
+
+    @Test
+    void preservesLatestRawRowsAndImmutableVersionsForCaseDistinctSourceIds() {
+        var source = identitySource();
+        var normalizer = new ParliamentRecordNormalizer(new ObjectMapper());
+        var upper = normalizer.normalize(source, Map.of("NAAS_CD", "AbC", "NAAS_NM", "홍의원"));
+        var lower = normalizer.normalize(source, Map.of("NAAS_CD", "abc", "NAAS_NM", "김의원"));
+        StepVerifier.create(repository.savePage(source, List.of(upper), 1, 1, true)
+                .then(repository.savePage(source, List.of(lower), 1, 1, true))).verifyComplete();
+        StepVerifier.create(count("parliament_source_record")).expectNext(2L).verifyComplete();
+        StepVerifier.create(count("parliament_source_record_version")).expectNext(2L).verifyComplete();
+        StepVerifier.create(databaseClient.sql("SELECT COUNT(*) count_value FROM parliament_source_record "
+                        + "WHERE BINARY record_key = 'AbC' AND JSON_UNQUOTE(JSON_EXTRACT(raw_payload, '$.NAAS_NM')) = '홍의원'")
+                .map((row, metadata) -> row.get("count_value", Long.class)).one())
+                .expectNext(1L).verifyComplete();
+        StepVerifier.create(databaseClient.sql("SELECT COUNT(*) count_value FROM parliament_source_record "
+                        + "WHERE BINARY record_key = 'abc' AND JSON_UNQUOTE(JSON_EXTRACT(raw_payload, '$.NAAS_NM')) = '김의원'")
+                .map((row, metadata) -> row.get("count_value", Long.class)).one())
+                .expectNext(1L).verifyComplete();
+    }
+
+    @Test
+    void verifiedRosterAliasesResolveSubsequentMonaRowsToTheSamePerson() {
+        var source = identitySource();
+        var normalizer = new ParliamentRecordNormalizer(new ObjectMapper());
+        var roster = normalizer.normalize(source, Map.of("NAAS_CD", "A1", "NAAS_NM", "홍길동",
+                "MONA_CD", "M1", "HG_NM", "홍길동"));
+        var vote = normalizer.normalize(source, Map.of("MONA_CD", "M1", "HG_NM", "홍길동"));
+        StepVerifier.create(repository.savePage(source, List.of(roster), 1, 1, true)
+                .then(repository.savePage(source, List.of(vote), 1, 1, true))).verifyComplete();
+        StepVerifier.create(count("parliament_person_identifier")).expectNext(2L).verifyComplete();
+        StepVerifier.create(count("parliament_person")).expectNext(1L).verifyComplete();
+        StepVerifier.create(databaseClient.sql("SELECT COUNT(DISTINCT identity_key) count_value "
+                        + "FROM parliament_record_person")
+                .map((row, metadata) -> row.get("count_value", Long.class)).one())
+                .expectNext(1L).verifyComplete();
+        StepVerifier.create(countWhere("parliament_person_identifier",
+                "evidence_source_key = 'allnamember' AND evidence_record_key = 'A1'"))
+                .expectNext(2L).verifyComplete();
+    }
+
+    @Test
+    void conflictingPreviouslySeparateAliasesFailWithoutReassigningIdentifiers() {
+        var source = identitySource();
+        var normalizer = new ParliamentRecordNormalizer(new ObjectMapper());
+        StepVerifier.create(repository.savePage(source, List.of(
+                normalizer.normalize(source, Map.of("NAAS_CD", "A1", "NAAS_NM", "홍길동")),
+                normalizer.normalize(source, Map.of("MONA_CD", "M1", "HG_NM", "홍길동"))), 1, 1, true))
+                .verifyComplete();
+        var merged = normalizer.normalize(source, Map.of("NAAS_CD", "A1", "NAAS_NM", "홍길동",
+                "MONA_CD", "M1", "HG_NM", "홍길동"));
+        StepVerifier.create(repository.savePage(source, List.of(merged), 1, 1, true))
+                .expectErrorMatches(error -> error instanceof IllegalStateException
+                        && error.getMessage().contains("conflicting person identifiers"))
+                .verify();
+        StepVerifier.create(count("parliament_person")).expectNext(2L).verifyComplete();
+        StepVerifier.create(count("parliament_person_identifier")).expectNext(2L).verifyComplete();
+    }
+
+    private ParliamentSourceDefinition identitySource() {
+        return new ParliamentSourceDefinition("allnamember", "ALLNAMEMBER", "국회의원 정보 통합 API", null,
+                ParliamentMediaType.DATA, ParliamentCollectionMode.PAGE, Map.of());
+    }
+
+    @Test
+    void namespaceMigrationPreservesAmbiguousLegacyRowsWithoutGuessingTheirKind() throws Exception {
+        try (var connection = DriverManager.getConnection(jdbcUrl, username, password)) {
+            try (var statement = connection.createStatement()) {
+                statement.execute("ALTER TABLE parliament_person_identifier "
+                        + "DROP COLUMN evidence_source_key, DROP COLUMN evidence_record_key, "
+                        + "MODIFY identifier_namespace varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL, "
+                        + "MODIFY external_id varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL");
+                statement.execute("INSERT INTO parliament_person_identifier "
+                        + "(identifier_namespace,external_id,identity_key) "
+                        + "VALUES ('OPEN_ASSEMBLY_MEMBER','AbC','assembly-member:abc')");
+            }
+            ScriptUtils.executeSqlScript(connection,
+                    new ClassPathResource("sql/migrations/009-person-identifier-namespaces-up.sql"));
+        }
+        StepVerifier.create(countWhere("parliament_person_identifier",
+                "identifier_namespace = 'OPEN_ASSEMBLY_MEMBER' AND external_id = 'AbC' "
+                        + "AND identity_key = 'assembly-member:abc' AND evidence_source_key IS NULL"))
+                .expectNext(1L).verifyComplete();
+        StepVerifier.create(countWhere("parliament_person_identifier", "external_id = 'abc'"))
+                .expectNext(0L).verifyComplete();
+        StepVerifier.create(countWhere("parliament_person_identifier",
+                "identifier_namespace IN ('OPEN_ASSEMBLY_NAAS_CD','OPEN_ASSEMBLY_MONA_CD')"))
+                .expectNext(0L).verifyComplete();
+    }
+
+    @Test
+    void legacyOnlyIdentifierCannotInventFormerMembershipAfterFinalization() {
+        var legacy = new PersonCandidate("assembly-member:legacy", "구자료", PersonKind.LEGISLATOR,
+                "legacy", "국회의원", "국회", PersonResolutionStatus.VERIFIED_EXTERNAL_ID, List.of());
+        var record = new NormalizedParliamentRecord("legacy", "1111111111111111111111111111111111111111",
+                "{\"NAAS_CD\":\"legacy\"}", List.of(legacy));
+        StepVerifier.create(repository.savePage(identitySource(), List.of(record), 1, 1, true)
+                .then(repository.finalizeSourceSnapshot("nwvrqwxyaytdsfvhu", java.time.Instant.EPOCH)))
+                .expectNext(0).verifyComplete();
+        StepVerifier.create(count("parliament_legislator_status")).expectNext(0L).verifyComplete();
+        StepVerifier.create(count("parliament_person_identifier")).expectNext(1L).verifyComplete();
+    }
 
     @BeforeAll
     static void startDatabase() {
@@ -89,6 +212,51 @@ class R2dbcParliamentStagingRepositoryTest {
     }
 
     @Test
+    void archivesChangedPayloadsAndQueuesEachVersionInThePageTransaction() {
+        ParliamentSourceDefinition source = new ParliamentSourceDefinition(
+                "billrcp", "BILLRCP", "의안접수", null, ParliamentMediaType.DATA,
+                ParliamentCollectionMode.PAGE, Map.of());
+        NormalizedParliamentRecord first = new NormalizedParliamentRecord(
+                "bill-1", "1111111111111111111111111111111111111111", "{\"BILL_ID\":\"bill-1\",\"state\":\"proposed\"}", List.of());
+        NormalizedParliamentRecord corrected = new NormalizedParliamentRecord(
+                "bill-1", "2222222222222222222222222222222222222222", "{\"BILL_ID\":\"bill-1\",\"state\":\"passed\"}", List.of());
+        StepVerifier.create(repository.savePage(source, List.of(first), 1, 1, true)
+                .then(repository.savePage(source, List.of(first), 1, 1, true))
+                .then(repository.saveChangedPage(source, List.of(corrected), 1, 1, true,
+                        java.time.Instant.parse("2026-10-07T00:00:00Z"))))
+                .assertNext(result -> assertThat(result.changed()).isEqualTo(1))
+                .verifyComplete();
+        StepVerifier.create(count("parliament_source_record_version")).expectNext(2L).verifyComplete();
+        StepVerifier.create(count("parliament_processing_outbox")).expectNext(2L).verifyComplete();
+        StepVerifier.create(databaseClient.sql("SELECT raw_payload FROM parliament_source_record_version "
+                + "WHERE payload_hash = '1111111111111111111111111111111111111111'")
+                .map((row, metadata) -> row.get("raw_payload", String.class)).one())
+                .assertNext(payload -> assertThat(payload).contains("proposed").doesNotContain("passed"))
+                .verifyComplete();
+    }
+
+    @Test
+    void childRefreshIncludesUnchangedActiveParentsButNotContinuouslyObservedClosedOnes() {
+        ParliamentSourceDefinition source = new ParliamentSourceDefinition(
+                "billrcp", "BILLRCP", "의안접수", null, ParliamentMediaType.DATA,
+                ParliamentCollectionMode.PAGE, Map.of());
+        NormalizedParliamentRecord active = new NormalizedParliamentRecord("active",
+                "1111111111111111111111111111111111111111",
+                "{\"BILL_ID\":\"active\",\"PROC_RESULT_CD\":\"접수\"}", List.of());
+        NormalizedParliamentRecord closed = new NormalizedParliamentRecord("closed",
+                "2222222222222222222222222222222222222222",
+                "{\"BILL_ID\":\"closed\",\"PROC_RESULT_CD\":\"원안가결\"}", List.of());
+        StepVerifier.create(repository.savePage(source, List.of(active, closed), 1, 1, true)
+                .then(databaseClient.sql("UPDATE parliament_source_record "
+                        + "SET content_changed_at = '2000-01-01 00:00:00'")
+                        .fetch().rowsUpdated()))
+                .expectNext(2L).verifyComplete();
+        StepVerifier.create(repository.distinctRawValuesForChildRefresh(
+                "billrcp", "BILL_ID", java.time.Instant.now(), 100))
+                .expectNext("active").verifyComplete();
+    }
+
+    @Test
     void savesNormalisedPageAndAdvancesCheckpointInOneTransaction() throws Exception {
         ParliamentSourceDefinition source = new ParliamentSourceDefinition(
                 "allnamember", "ALLNAMEMBER", "국회의원 정보 통합 API", "15126133",
@@ -99,10 +267,11 @@ class R2dbcParliamentStagingRepositoryTest {
         PersonCandidate person = new PersonCandidate(
                 "assembly-member:a001", "홍길동", PersonKind.LEGISLATOR, "A001",
                 "국회의원", "대한민국 국회", PersonResolutionStatus.VERIFIED_EXTERNAL_ID,
-                List.of(social));
+                List.of(social), PersonCandidate.NAAS_NAMESPACE,
+                List.of(new PersonCandidate.ExternalIdentifier(PersonCandidate.MONA_NAMESPACE, "A001")));
         NormalizedParliamentRecord record = new NormalizedParliamentRecord(
                 "A001", "0123456789012345678901234567890123456789",
-                "{\"NAAS_CD\":\"A001\",\"GTELT_ERACO\":\"제21대, 제22대\"}", List.of(person));
+                "{\"NAAS_CD\":\"A001\",\"NAAS_NM\":\"홍길동\",\"MONA_CD\":\"A001\",\"HG_NM\":\"홍길동\",\"GTELT_ERACO\":\"제21대, 제22대\"}", List.of(person));
 
         StepVerifier.create(repository.savePage(source, List.of(record), 1, 2, false)
                         .then(repository.checkpoint(source.key(), source.variantKey())))
@@ -144,7 +313,7 @@ class R2dbcParliamentStagingRepositoryTest {
         PersonCandidate formerPerson = new PersonCandidate(
                 "assembly-member:a002", "김전직", PersonKind.LEGISLATOR, "A002",
                 "국회의원", "대한민국 국회", PersonResolutionStatus.VERIFIED_EXTERNAL_ID,
-                List.of());
+                List.of(), PersonCandidate.NAAS_NAMESPACE, List.of());
         NormalizedParliamentRecord formerRecord = new NormalizedParliamentRecord(
                 "A002", "1111111111111111111111111111111111111111",
                 "{\"NAAS_CD\":\"A002\",\"GTELT_ERACO\":\"제20대\"}", List.of(formerPerson));

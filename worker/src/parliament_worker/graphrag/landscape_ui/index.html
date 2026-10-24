@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>데이터 지도 · 의정의 흐름</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">본문으로 이동</a>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand"><span class="brand-mark" aria-hidden="true">◎</span><span>의정의 흐름 <small>데이터 지도</small></span></div>
+        <span class="private-badge"><span aria-hidden="true">●</span> 로컬 내부 열람</span>
+      </div>
+    </header>
+    <main id="main" class="shell">
+      <section class="intro" aria-labelledby="page-title">
+        <div><p class="eyebrow">COLLECTION → EVIDENCE → GRAPH → REVIEW</p><h1 id="page-title">지금, 어떤 데이터를<br>가지고 있나요?</h1><p class="lead">수집 계획과 실제 저장 상태를 함께 보고, 한 건의 원문과 그래프 관계까지 내려가 확인합니다.</p></div>
+        <div class="snapshot-card"><span class="snapshot-icon" aria-hidden="true">◷</span><div><strong>이 화면의 기준</strong><p id="snapshot-time">확인 중…</p><p>현재 컴퓨터의 GraphRAG 저장소와 로컬 MySQL 관측값</p><button id="refresh-button" type="button">현황 새로고침 ↻</button></div></div>
+      </section>
+      <div id="error" class="error" role="alert" hidden></div>
+      <nav class="section-nav" aria-label="페이지 구역"><a href="#collections">원문 수집</a><a href="#pipeline">처리 흐름</a><a href="#domains">수집 영역</a><a href="#graph">그래프 구조</a><a href="#radar">뉴스 후보</a><a href="#explorer">원문 탐색</a><a href="#public-db">서비스 DB</a></nav>
+      <section class="metric-grid" id="metrics" aria-label="핵심 현황"></section>
+      <section id="collections" class="section"><div class="section-heading"><div><span class="section-no">진행 중 / 원문 보관</span><h2>전량 수집 진행</h2></div><p>수집 원문과 아래 GraphRAG 입력은 따로 집계합니다. 대상이 확정되지 않은 범위는 완료율을 표시하지 않습니다.</p></div><div id="collection-list" class="collection-grid"><p class="muted">원문 수집 집계를 확인하는 중입니다.</p></div><div class="boundary-note"><span aria-hidden="true">ⓘ</span><p>기존 명부·전체 법안 범위와 최종 대조까지 확인해야 전체 수집이 완료됩니다. 원문 보관은 관계 검수·현재 재직 확인·앱 공개 승인을 뜻하지 않습니다.</p></div></section>
+      <section id="pipeline" class="section"><div class="section-heading"><div><span class="section-no">01 / 전체 흐름</span><h2>데이터가 쌓이는 단계</h2></div><p>수치는 서로 다른 단계의 저장 건수입니다. 전체 수집 대상의 완성률을 뜻하지 않습니다.</p></div><div class="pipeline" id="pipeline-steps"></div><div class="boundary-note"><span aria-hidden="true">ⓘ</span><p>GraphRAG의 관계·요약·답변은 비공개 후보입니다. 마지막 MySQL 수치는 별도 법령 자료 경로이며 앞 단계와 이어지는 전환율이 아닙니다. 게시 판정은 앱 공개나 내용 검수 완료를 뜻하지 않습니다.</p></div></section>
+      <section id="domains" class="section"><div class="section-heading"><div><span class="section-no">02 / 거시적 범위</span><h2>수집 계획과 실제 범위</h2></div><p>영역을 선택하면 해당 원문 목록으로 이동합니다.</p></div><div class="domain-layout"><div id="domain-list" class="domain-list"></div><aside class="plan-panel"><span class="panel-kicker">다음에 필요한 데이터</span><h3>우선 확인할 공백</h3><div id="gap-list"></div><p class="plan-footnote">계획 문서는 저장소의 <code>docs/data</code>와 <code>docs/plans</code>를 기준으로 연결했습니다. 0건은 현재 GraphRAG 입력에서 확인되지 않았다는 뜻입니다.</p></aside></div><details class="plan-details"><summary>전체 영역의 수집 목적과 다음 작업 보기</summary><div id="plan-table"></div></details></section>
+      <section id="graph" class="section"><div class="section-heading"><div><span class="section-no">03 / 생성된 구조</span><h2>그래프에는 무엇이 있나요?</h2></div><p>고유 노드·관계 ID 기준. 관계의 내용은 아래에서 원문과 함께 살펴볼 수 있습니다.</p></div><div class="graph-grid"><div class="chart-card"><h3>노드 종류</h3><div id="node-chart"></div></div><div class="chart-card"><h3>관계 종류</h3><div id="edge-chart"></div></div><div class="chart-card review-card"><h3>관계 검수 상태</h3><div id="review-chart"></div><p>검수 대기와 게시 가능 여부는 별개입니다. 출처 이용 조건도 확인해야 합니다.</p></div><div class="chart-card"><h3>요약 보고서 계층</h3><div id="level-chart"></div><p class="chart-note" id="claim-count"></p></div></div></section>
+      <section id="radar" class="section"><div class="section-heading"><div><span class="section-no">04 / 별도 수집 경로</span><h2>뉴스에서 발견한 이슈 후보</h2></div><p>뉴스 기사는 공식 활동 근거가 아닙니다. 후보별 보도를 열어보고 공식 기록과 연결할 필요가 있습니다.</p></div><div class="radar-summary" id="radar-summary"></div><div class="radar-list" id="radar-list"></div></section>
+      <section id="explorer" class="section"><div class="section-heading"><div><span class="section-no">05 / 미시적 탐색</span><h2>한 건씩 원문과 관계 확인</h2></div><p>선택한 기록의 출처, 원문 구간, 추출된 인물·관계와 근거를 확인합니다.</p></div><div class="explorer-toolbar"><label>수집 영역 <select id="domain-filter"><option value="all">전체 영역</option></select></label><label class="search-label">기록 검색 <input id="source-search" type="search" maxlength="100" placeholder="제목 또는 출처 ID 검색"></label><button id="search-button" type="button">검색</button></div><div class="explorer-grid"><div class="record-panel"><div class="record-head"><strong id="record-count">기록 불러오는 중…</strong><span>제목을 누르면 상세 내용을 엽니다</span></div><div id="record-list" class="record-list"></div><div class="pager"><button id="page-prev" type="button">이전</button><span id="page-state"></span><button id="page-next" type="button">다음</button></div></div><aside id="detail" class="detail-panel" aria-live="polite"><div class="empty-detail"><span aria-hidden="true">↗</span><h3>기록을 선택하세요</h3><p>원문 위치와 현재 그래프에 생성된 내용을 여기에서 볼 수 있습니다.</p></div></aside></div></section>
+      <section id="public-db" class="section"><div class="section-heading"><div><span class="section-no">06 / 별도 저장소</span><h2>서비스 DB와 비교</h2></div><p>GraphRAG 후보 저장소와 로컬 MySQL 서비스 저장소는 서로 다른 경계입니다. MySQL에는 초안도 포함됩니다.</p></div><div id="mysql-panel" class="mysql-panel"></div></section>
+      <footer class="footer">의정의 흐름 · 내부 데이터 지도 <span>공식 기록의 범위, 생성 상태, 공개 판정을 분리해 표시합니다.</span></footer>
+    </main>
+  </body>
+</html>

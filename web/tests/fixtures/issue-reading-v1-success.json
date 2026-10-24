@@ -1,0 +1,195 @@
+{
+  "schema": "issue-reading-v1",
+  "issueId": "test-issue",
+  "editorialId": "test-editorial",
+  "editorialVersion": "61ad3032a8f3526baa96fa822acfc5c5acfbea75d523b96f6775c779f197d78f",
+  "version": "reading_9442511bcdbb1e5aeb849653873045f80f9841cb3dd59dcfacbe6a4ed8fef342",
+  "publicationState": "published",
+  "reviewedAt": "2026-10-18T09:00:00+09:00",
+  "publishedAt": "2026-10-18T01:00:00Z",
+  "checkedAt": "2026-10-18",
+  "title": "시험 해설",
+  "summary": "시험 배경",
+  "summaryEvidenceIds": [
+    "test-evidence"
+  ],
+  "currentStage": "검토한 단계",
+  "stageEvidenceIds": [
+    "test-evidence"
+  ],
+  "nextTrigger": "다음 공식 발표",
+  "coverage": "합성 이슈의 법안 기록 1건과 역할 1건만 포함한다.",
+  "blocks": [
+    {
+      "id": "b1",
+      "kind": "background",
+      "text": "배경 문장",
+      "date": null,
+      "title": null,
+      "evidenceIds": [
+        "test-evidence"
+      ],
+      "personIds": [
+        "test-person"
+      ]
+    },
+    {
+      "id": "f1",
+      "kind": "fact",
+      "text": "사실 문장",
+      "date": null,
+      "title": null,
+      "evidenceIds": [
+        "test-evidence"
+      ],
+      "personIds": []
+    },
+    {
+      "id": "u1",
+      "kind": "unknown",
+      "text": "미확인 문장",
+      "date": null,
+      "title": null,
+      "evidenceIds": [],
+      "personIds": []
+    }
+  ],
+  "people": [
+    {
+      "id": "test-person",
+      "name": "합성 인물",
+      "evidenceIds": [
+        "test-evidence"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "test-evidence",
+      "documentId": "test-doc",
+      "documentVersion": "test-doc-v1",
+      "extractionVersion": "test-extract-v1",
+      "segmentId": "test-segment",
+      "start": 0,
+      "end": 2,
+      "excerpt": "근거",
+      "before": "",
+      "after": "",
+      "mentions": [],
+      "sourceUrl": "https://www.law.go.kr/test",
+      "title": "합성 원문",
+      "locator": "page 1"
+    }
+  ],
+  "contexts": [
+    {
+      "eventId": "test-event",
+      "eventVersion": "test-event-v1",
+      "changeKind": "new_record",
+      "activity": {
+        "id": "test-event",
+        "type": "bill",
+        "title": "합성 법안 기록",
+        "summary": "합성 기록 요약",
+        "stage": "proposed",
+        "personIds": [
+          "test-person"
+        ],
+        "topics": [
+          "test-issue"
+        ],
+        "billId": "test-bill",
+        "occurredAt": null,
+        "publishedAt": "2026-10-17T00:00:00Z",
+        "collectedAt": "2026-10-18T00:00:00Z",
+        "sourceUrl": "https://www.law.go.kr/test",
+        "evidence": [
+          {
+            "id": "test-evidence",
+            "sourceUrl": "https://www.law.go.kr/test",
+            "excerpt": "근거",
+            "locator": "page 1",
+            "sourceVersion": "test-doc-v1"
+          }
+        ],
+        "votes": [],
+        "coverage": "합성 검사 전용",
+        "corrected": false,
+        "version": "test-event-v1",
+        "changedAt": null
+      },
+      "participants": [
+        {
+          "personId": "test-person",
+          "name": "합성 인물",
+          "role": "lead_sponsor",
+          "evidenceIds": [
+            "test-evidence"
+          ],
+          "organizationAtTime": null,
+          "positionAtTime": null
+        }
+      ],
+      "relations": [
+        {
+          "id": "test-role",
+          "subjectId": "test-person",
+          "objectId": "test-bill",
+          "type": "lead_sponsor",
+          "evidenceIds": [
+            "test-evidence"
+          ],
+          "decision": "approved",
+          "reason": "합성 자료의 승인 역할"
+        }
+      ],
+      "evidence": [
+        {
+          "id": "test-evidence",
+          "documentId": "test-doc",
+          "documentVersion": "test-doc-v1",
+          "extractionVersion": "test-extract-v1",
+          "segmentId": "test-segment",
+          "start": 0,
+          "end": 2,
+          "excerpt": "근거",
+          "before": "",
+          "after": "",
+          "mentions": [],
+          "sourceUrl": "https://www.law.go.kr/test",
+          "title": "합성 원문",
+          "locator": "page 1"
+        }
+      ],
+      "documents": [
+        {
+          "id": "test-doc",
+          "version": "test-doc-v1",
+          "extractionVersion": "test-extract-v1",
+          "sourceKey": "synthetic",
+          "recordKey": "test-doc",
+          "sourceUrl": "https://www.law.go.kr/test",
+          "title": "합성 원문",
+          "format": "html",
+          "bodyStatus": "available",
+          "licenseStatus": "allowed",
+          "publishedAt": "2026-10-17T00:00:00Z",
+          "collectedAt": "2026-10-18T00:00:00Z",
+          "datePrecision": "date",
+          "segments": [
+            {
+              "id": "test-segment",
+              "text": "근거",
+              "locator": "page 1",
+              "mentions": []
+            }
+          ]
+        }
+      ],
+      "dateKind": "published",
+      "scheduledAt": null,
+      "scheduledPrecision": null
+    }
+  ],
+  "updates": []
+}

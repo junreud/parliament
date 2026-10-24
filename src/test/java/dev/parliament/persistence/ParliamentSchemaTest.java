@@ -31,7 +31,22 @@ class ParliamentSchemaTest {
                     "CREATE VIEW `parliament_former_legislator`");
             assertThat(sql).contains("`raw_payload` json NOT NULL");
             assertThat(sql).contains("`content_changed_at` timestamp(6)");
+            assertThat(sql).contains(
+                    "`identifier_namespace` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin",
+                    "`external_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin",
+                    "`evidence_source_key` varchar(100)", "`evidence_record_key` varchar(255)");
             assertThat(sql).doesNotContain("api_key", "service_key", "password");
+        }
+    }
+
+    @Test
+    void namespaceMigrationLeavesAmbiguousLegacyDataIntact() throws IOException {
+        try (var input = getClass().getResourceAsStream("/sql/migrations/009-person-identifier-namespaces-up.sql")) {
+            assertThat(input).isNotNull();
+            String sql = new String(input.readAllBytes(), StandardCharsets.UTF_8);
+            assertThat(sql).contains("ALTER TABLE parliament_person_identifier", "utf8mb4_bin",
+                    "evidence_source_key", "evidence_record_key");
+            assertThat(sql).doesNotContain("DELETE FROM", "UPDATE parliament_person", "TRUNCATE", "DROP TABLE");
         }
     }
 }

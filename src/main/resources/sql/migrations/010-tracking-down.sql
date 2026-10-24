@@ -1,0 +1,12 @@
+DROP TABLE IF EXISTS tracking_review_budget;
+DROP TABLE IF EXISTS tracking_auth_rate;
+DROP TABLE IF EXISTS tracking_digest_item;
+DROP TABLE IF EXISTS tracking_mail_outbox;
+DROP TABLE IF EXISTS tracking_follow;
+DROP TABLE IF EXISTS tracking_session;
+DROP TABLE IF EXISTS tracking_login_token;
+DROP TABLE IF EXISTS tracking_user;
+DROP TABLE IF EXISTS tracking_event_topic;
+DROP TABLE IF EXISTS tracking_event_person;
+DROP TABLE IF EXISTS tracking_event_version;
+DROP TABLE IF EXISTS tracking_event;

@@ -1,0 +1,28 @@
+name: 개발 작업
+description: 사용자 행동과 완료 증거를 기준으로 작업을 관리합니다.
+title: '[작업 ID] '
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: 해결할 사용자 행동과 현재 문제
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: 담당 영역·변경 범위·선행 작업
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 완료 조건과 검증 방법
+      description: 합성 검사·실제 공개 자료·외부 사용자 검증을 구분합니다.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 결과·미검증 범위·다음 인계
+      description: 비공개 원문·후보 관계·접속 정보·개인정보는 올리지 마세요.
