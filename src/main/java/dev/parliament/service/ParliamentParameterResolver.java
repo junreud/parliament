@@ -15,8 +15,11 @@ import java.time.LocalDate;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class ParliamentParameterResolver {
+    private static final Set<String> CHILD_REFRESH_SOURCES = Set.of(
+            "nojepdqqaweusdfbi", "billjudgeconf", "billlwjudgeconf", "vconfbillconflist");
     private final ParliamentParameterPlanCatalog plans;
     private final ParliamentParameterValueRepository valueRepository;
     private final ParliamentIngestionProperties properties;
@@ -54,7 +57,7 @@ public class ParliamentParameterResolver {
             return resolveAll(source);
         }
         return plans.find(source.key())
-                .map(plan -> resolveAll(source, plan, changedSince))
+                .map(plan -> resolveAll(source, plan, changedSince, CHILD_REFRESH_SOURCES.contains(source.key())))
                 .orElseGet(() -> Flux.just(source));
     }
 
@@ -107,6 +110,13 @@ public class ParliamentParameterResolver {
             ParliamentParameterPlan plan,
             Instant changedSince
     ) {
+        return resolveAll(source, plan, changedSince, false);
+    }
+
+    private Flux<ParliamentSourceDefinition> resolveAll(
+            ParliamentSourceDefinition source, ParliamentParameterPlan plan,
+            Instant changedSince, boolean refreshChildren
+    ) {
         if (plan.status() == ParameterPlanStatus.UNRESOLVED) {
             return Flux.error(new IllegalStateException(
                     "unresolved parameter contract for source " + source.key()));
@@ -116,7 +126,7 @@ public class ParliamentParameterResolver {
         }
         Flux<Map<String, String>> combinations = Flux.just(Map.of());
         for (ParliamentParameterBinding binding : plan.bindings()) {
-            Flux<String> values = resolveAllValues(binding, changedSince).cache();
+            Flux<String> values = resolveAllValues(binding, changedSince, refreshChildren).cache();
             combinations = combinations.concatMap(parameters -> values.map(value -> {
                 LinkedHashMap<String, String> expanded = new LinkedHashMap<>(parameters);
                 expanded.put(binding.parameter(), value);
@@ -145,15 +155,19 @@ public class ParliamentParameterResolver {
 
     private Flux<String> resolveAllValues(
             ParliamentParameterBinding binding,
-            Instant changedSince
+            Instant changedSince,
+            boolean refreshChildren
     ) {
         if (binding.strategy() != dev.parliament.config.ParameterValueStrategy.SOURCE_FIELD) {
             return resolve(binding).flux();
         }
         Flux<String> values = changedSince == null
                 ? valueRepository.distinctRawValues(binding.sourceKey(), binding.sourceField(), 100_000)
-                : valueRepository.distinctRawValuesChangedSince(
-                        binding.sourceKey(), binding.sourceField(), changedSince, 100_000);
+                : refreshChildren
+                    ? valueRepository.distinctRawValuesForChildRefresh(
+                            binding.sourceKey(), binding.sourceField(), changedSince, 100_000)
+                    : valueRepository.distinctRawValuesChangedSince(
+                            binding.sourceKey(), binding.sourceField(), changedSince, 100_000);
         return changedSince == null
                 ? values.switchIfEmpty(Flux.error(new IllegalStateException(
                         "no source values for required parameter " + binding.parameter()

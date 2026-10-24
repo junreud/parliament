@@ -9,4 +9,9 @@ public interface ParliamentParameterValueRepository {
 
     Flux<String> distinctRawValuesChangedSince(
             String sourceKey, String field, Instant changedSince, int limit);
+
+    default Flux<String> distinctRawValuesForChildRefresh(
+            String sourceKey, String field, Instant changedSince, int limit) {
+        return distinctRawValuesChangedSince(sourceKey, field, changedSince, limit);
+    }
 }

@@ -20,8 +20,28 @@ parliament:
     incremental-zone: ${PARLIAMENT_INCREMENTAL_ZONE:Asia/Seoul}
     incremental-page-size: ${PARLIAMENT_INCREMENTAL_PAGE_SIZE:100}
     incremental-max-pages: ${PARLIAMENT_INCREMENTAL_MAX_PAGES:1000}
+    incremental-source-keys: ${PARLIAMENT_INCREMENTAL_SOURCE_KEYS:}
+    daily-source-keys: ${PARLIAMENT_DAILY_SOURCE_KEYS:}
+    daily-cron: ${PARLIAMENT_DAILY_CRON:0 0 4 * * *}
+    reconciliation-enabled: ${PARLIAMENT_RECONCILIATION_ENABLED:false}
+    reconciliation-cron: ${PARLIAMENT_RECONCILIATION_CRON:0 0 3 * * SUN}
     social-verification-enabled: ${PARLIAMENT_SOCIAL_VERIFICATION_ENABLED:true}
     social-verification-max-age-days: ${PARLIAMENT_SOCIAL_VERIFICATION_MAX_AGE_DAYS:7}
     social-verification-batch-size: ${PARLIAMENT_SOCIAL_VERIFICATION_BATCH_SIZE:200}
     base-url: https://open.assembly.go.kr/portal/openapi
     ca-certificate-path: ${PARLIAMENT_OPEN_ASSEMBLY_CA_CERTIFICATE:}
+
+tracking:
+  enabled: ${TRACKING_ENABLED:false}
+  admin-key: ${TRACKING_ADMIN_KEY:${PARLIAMENT_INGESTION_ADMIN_KEY:}}
+  public-base-url: ${TRACKING_PUBLIC_BASE_URL:http://localhost:3000}
+knowledge:
+  enabled: ${KNOWLEDGE_ENABLED:false}
+spring.codec.max-in-memory-size: 2MB
+server.error.include-message: never
+server.error.include-stacktrace: never
+
+beta:
+  enabled: ${BETA_ENABLED:false}
+  public-base-url: ${BETA_PUBLIC_BASE_URL:http://localhost:3000}
+  admin-key: ${BETA_ADMIN_KEY:${PARLIAMENT_INGESTION_ADMIN_KEY:}}

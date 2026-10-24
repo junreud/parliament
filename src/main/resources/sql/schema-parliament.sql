@@ -10,9 +10,11 @@ CREATE TABLE `parliament_person` (
 );
 
 CREATE TABLE `parliament_person_identifier` (
-  `identifier_namespace` varchar(64) NOT NULL,
-  `external_id` varchar(255) NOT NULL,
+  `identifier_namespace` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `external_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `identity_key` varchar(255) NOT NULL,
+  `evidence_source_key` varchar(100) DEFAULT NULL,
+  `evidence_record_key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   PRIMARY KEY (`identifier_namespace`, `external_id`),
   KEY `idx_parliament_identifier_person` (`identity_key`)
 );
@@ -22,7 +24,7 @@ CREATE TABLE `parliament_legislator_term` (
   `assembly_term` smallint unsigned NOT NULL,
   `term_label` varchar(32) NOT NULL,
   `evidence_source_key` varchar(100) NOT NULL,
-  `evidence_record_key` varchar(255) NOT NULL,
+  `evidence_record_key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `observed_at` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
   PRIMARY KEY (`identity_key`, `assembly_term`),
   KEY `idx_parliament_legislator_term_number` (`assembly_term`)
@@ -34,7 +36,7 @@ CREATE TABLE `parliament_legislator_status` (
   `current_assembly_term` smallint unsigned DEFAULT NULL,
   `latest_assembly_term` smallint unsigned DEFAULT NULL,
   `evidence_source_key` varchar(100) DEFAULT NULL,
-  `evidence_record_key` varchar(255) DEFAULT NULL,
+  `evidence_record_key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `classified_at` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
   PRIMARY KEY (`identity_key`),
   KEY `idx_parliament_legislator_status` (`membership_status`),
@@ -48,7 +50,7 @@ CREATE TABLE `parliament_person_position` (
   `position_title` varchar(255) DEFAULT NULL,
   `organization` varchar(255) DEFAULT NULL,
   `source_key` varchar(100) NOT NULL,
-  `source_record_key` varchar(255) NOT NULL,
+  `source_record_key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `observed_at` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
   PRIMARY KEY (`position_key`),
   KEY `idx_parliament_position_person` (`identity_key`)
@@ -75,7 +77,7 @@ CREATE TABLE `parliament_social_account` (
 
 CREATE TABLE `parliament_source_record` (
   `source_key` varchar(100) NOT NULL,
-  `record_key` varchar(255) NOT NULL,
+  `record_key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `api_code` varchar(100) NOT NULL,
   `data_go_kr_id` varchar(100) DEFAULT NULL,
   `payload_hash` char(40) NOT NULL,
@@ -88,7 +90,7 @@ CREATE TABLE `parliament_source_record` (
 
 CREATE TABLE `parliament_record_person` (
   `source_key` varchar(100) NOT NULL,
-  `record_key` varchar(255) NOT NULL,
+  `record_key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `identity_key` varchar(255) NOT NULL,
   PRIMARY KEY (`source_key`, `record_key`, `identity_key`),
   KEY `idx_parliament_record_person_identity` (`identity_key`)
@@ -182,3 +184,28 @@ SELECT
 FROM parliament_person p
 JOIN parliament_legislator_status s ON s.identity_key = p.identity_key
 WHERE s.membership_status = 'FORMER';
+CREATE TABLE `parliament_source_record_version` (
+  `source_key` varchar(100) NOT NULL,
+  `record_key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `payload_hash` char(40) NOT NULL,
+  `api_code` varchar(100) NOT NULL,
+  `raw_payload` json NOT NULL,
+  `observed_at` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  PRIMARY KEY (`source_key`, `record_key`, `payload_hash`),
+  KEY `idx_source_version_observed` (`observed_at`)
+);
+
+CREATE TABLE `parliament_processing_outbox` (
+  `outbox_id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `source_key` varchar(100) NOT NULL,
+  `record_key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `payload_hash` char(40) NOT NULL,
+  `status` varchar(16) NOT NULL DEFAULT 'PENDING',
+  `created_at` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  `attempts` int unsigned NOT NULL DEFAULT 0,
+  `last_error` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`outbox_id`),
+  UNIQUE KEY `uq_processing_version` (`source_key`, `record_key`, `payload_hash`),
+  KEY `idx_processing_pending` (`status`, `created_at`),
+  CONSTRAINT `chk_processing_outbox_status` CHECK (`status` IN ('PENDING', 'SENT', 'FAILED'))
+);

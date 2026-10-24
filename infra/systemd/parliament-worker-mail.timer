@@ -1,0 +1,8 @@
+[Unit]
+Description=Explicitly enabled Parliament SES mail delivery
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1min
+Unit=parliament-worker@mail-send.service
+[Install]
+WantedBy=timers.target

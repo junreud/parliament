@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">의정의 흐름</string>
+    <string name="title_activity_main">의정의 흐름</string>
+    <string name="package_name">dev.parliament.flow</string>
+    <string name="custom_url_scheme">dev.parliament.flow</string>
+</resources>

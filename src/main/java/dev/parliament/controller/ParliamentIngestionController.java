@@ -69,6 +69,15 @@ public class ParliamentIngestionController {
                 Duration.ofDays(maxAgeDays), limit))));
     }
 
+    @PostMapping("/reconcile")
+    public Mono<ParliamentSyncReport> reconcile(
+            @RequestHeader(ADMIN_HEADER) String adminKey,
+            @RequestBody ParliamentIngestionRequest request
+    ) {
+        authorize(adminKey);
+        return exclusive(mapClientErrors(Mono.defer(() -> service.reconcile(request))));
+    }
+
     @PostMapping("/preflight")
     public Mono<ParliamentIngestionReport> preflight(
             @RequestHeader(ADMIN_HEADER) String adminKey,

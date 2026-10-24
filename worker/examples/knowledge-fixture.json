@@ -1,0 +1,47 @@
+{
+  "id": "synthetic-knowledge",
+  "issueId": "synthetic-issue",
+  "issuePolicyId": "policy-fixture",
+  "description": "Synthetic validator input; no collection or publication approval.",
+  "entities": [
+    {
+      "id": "policy-fixture",
+      "kind": "policy",
+      "name": "합성 정책",
+      "identifiers": []
+    },
+    {
+      "id": "person-fixture",
+      "kind": "person",
+      "name": "합성 인물",
+      "identifiers": [
+        {
+          "namespace": "NANET_CONGRESS_NO",
+          "value": "synthetic-person"
+        }
+      ]
+    },
+    {
+      "id": "bill-fixture",
+      "kind": "bill",
+      "name": "합성 법안",
+      "identifiers": [
+        {
+          "namespace": "ASSEMBLY_BILL_NUMBER",
+          "value": "synthetic-bill"
+        }
+      ]
+    }
+  ],
+  "documents": [
+    {
+      "id": "doc-fixture",
+      "sourceKey": "synthetic-source",
+      "recordKey": "synthetic-record",
+      "sourceUrl": "https://www.law.go.kr/",
+      "format": "html",
+      "title": "합성 문서",
+      "bodySelector": "main"
+    }
+  ]
+}

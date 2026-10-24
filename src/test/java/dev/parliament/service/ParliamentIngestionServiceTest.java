@@ -253,6 +253,25 @@ class ParliamentIngestionServiceTest {
                 eq(1L), eq(IngestionRunStatus.SUCCESS), any(), eq(1), eq(0));
     }
 
+    @Test
+    void reconciliationQueriesAllParentsDespitePreviousSuccessfulWatermark() {
+        properties.setWriteEnabled(true);
+        when(repository.lastSuccessfulSyncAt(source.key()))
+                .thenReturn(Mono.just(Instant.parse("2026-10-01T00:00:00Z")));
+        when(repository.resetCheckpoint(source.key(), source.variantKey())).thenReturn(Mono.empty());
+        when(apiClient.fetch(source, 1, 10)).thenReturn(Mono.just(new OpenAssemblyPage(0, List.of())));
+        when(repository.saveChangedPage(eq(source), eq(List.of()), eq(1), eq(1), eq(true), any()))
+                .thenReturn(Mono.just(new dev.parliament.persistence.ParliamentPageWriteResult(0, 0, 0)));
+
+        StepVerifier.create(service(ParliamentSourceCatalog.of(List.of(source))).reconcile(
+                new ParliamentIngestionRequest(List.of(source.key()), 10, 1, true)))
+                .expectNextMatches(report -> report.sources().get(0).complete())
+                .verifyComplete();
+
+        verify(parameterResolver).resolveAll(source);
+        verify(parameterResolver, never()).resolveChanged(any(), any());
+    }
+
     private ParliamentIngestionService service(ParliamentSourceCatalog catalog) {
         return new ParliamentIngestionService(
                 apiClient, repository, normalizer, catalog, properties, parameterResolver,

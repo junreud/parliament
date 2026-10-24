@@ -1,0 +1,285 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-01-01",
+  "runId": "synthetic-browser-tests",
+  "generatedAt": "2026-01-01T00:00:00Z",
+  "lastAttemptAt": "2026-01-01T00:00:00Z",
+  "status": "ok",
+  "selectionMethod": "rules-shortlist-human-review",
+  "baselineAvailable": false,
+  "items": [
+    {
+      "id": "news_0000000000000000",
+      "title": "합성 뉴스 1 · 테스트 전용",
+      "question": "합성 질문입니다.",
+      "reason": "목록·원문 링크·복귀 검증을 위한 합성 항목입니다.",
+      "score": 100,
+      "articleCount": 1,
+      "publisherCount": 1,
+      "independentSignals": 1,
+      "growth": {
+        "status": "no-baseline",
+        "recent": 0,
+        "previous": 0
+      },
+      "searchSignals": [],
+      "publishedAt": "2026-01-01T00:00:00Z",
+      "articles": [
+        {
+          "title": "합성 기사 1",
+          "url": "https://www.yna.co.kr/view/SYNTHETIC00000000",
+          "publisher": "연합뉴스",
+          "publishedAt": "2026-01-01T00:00:00Z"
+        }
+      ],
+      "evidence": [],
+      "reviewStatus": "unreviewed"
+    },
+    {
+      "id": "news_0000000000000001",
+      "title": "합성 뉴스 2 · 테스트 전용",
+      "question": "합성 질문입니다.",
+      "reason": "목록·원문 링크·복귀 검증을 위한 합성 항목입니다.",
+      "score": 99,
+      "articleCount": 1,
+      "publisherCount": 1,
+      "independentSignals": 1,
+      "growth": {
+        "status": "no-baseline",
+        "recent": 0,
+        "previous": 0
+      },
+      "searchSignals": [],
+      "publishedAt": "2026-01-01T00:00:00Z",
+      "articles": [
+        {
+          "title": "합성 기사 2",
+          "url": "https://www.yna.co.kr/view/SYNTHETIC00000001",
+          "publisher": "연합뉴스",
+          "publishedAt": "2026-01-01T00:00:00Z"
+        }
+      ],
+      "evidence": [],
+      "reviewStatus": "unreviewed"
+    },
+    {
+      "id": "news_0000000000000002",
+      "title": "합성 뉴스 3 · 테스트 전용",
+      "question": "합성 질문입니다.",
+      "reason": "목록·원문 링크·복귀 검증을 위한 합성 항목입니다.",
+      "score": 98,
+      "articleCount": 1,
+      "publisherCount": 1,
+      "independentSignals": 1,
+      "growth": {
+        "status": "no-baseline",
+        "recent": 0,
+        "previous": 0
+      },
+      "searchSignals": [],
+      "publishedAt": "2026-01-01T00:00:00Z",
+      "articles": [
+        {
+          "title": "합성 기사 3",
+          "url": "https://www.yna.co.kr/view/SYNTHETIC00000002",
+          "publisher": "연합뉴스",
+          "publishedAt": "2026-01-01T00:00:00Z"
+        }
+      ],
+      "evidence": [],
+      "reviewStatus": "unreviewed"
+    },
+    {
+      "id": "news_0000000000000003",
+      "title": "합성 뉴스 4 · 테스트 전용",
+      "question": "합성 질문입니다.",
+      "reason": "목록·원문 링크·복귀 검증을 위한 합성 항목입니다.",
+      "score": 97,
+      "articleCount": 1,
+      "publisherCount": 1,
+      "independentSignals": 1,
+      "growth": {
+        "status": "no-baseline",
+        "recent": 0,
+        "previous": 0
+      },
+      "searchSignals": [],
+      "publishedAt": "2026-01-01T00:00:00Z",
+      "articles": [
+        {
+          "title": "합성 기사 4",
+          "url": "https://www.yna.co.kr/view/SYNTHETIC00000003",
+          "publisher": "연합뉴스",
+          "publishedAt": "2026-01-01T00:00:00Z"
+        }
+      ],
+      "evidence": [],
+      "reviewStatus": "unreviewed"
+    },
+    {
+      "id": "news_0000000000000004",
+      "title": "합성 뉴스 5 · 테스트 전용",
+      "question": "합성 질문입니다.",
+      "reason": "목록·원문 링크·복귀 검증을 위한 합성 항목입니다.",
+      "score": 96,
+      "articleCount": 1,
+      "publisherCount": 1,
+      "independentSignals": 1,
+      "growth": {
+        "status": "no-baseline",
+        "recent": 0,
+        "previous": 0
+      },
+      "searchSignals": [],
+      "publishedAt": "2026-01-01T00:00:00Z",
+      "articles": [
+        {
+          "title": "합성 기사 5",
+          "url": "https://www.yna.co.kr/view/SYNTHETIC00000004",
+          "publisher": "연합뉴스",
+          "publishedAt": "2026-01-01T00:00:00Z"
+        }
+      ],
+      "evidence": [],
+      "reviewStatus": "unreviewed"
+    },
+    {
+      "id": "news_0000000000000005",
+      "title": "합성 뉴스 6 · 테스트 전용",
+      "question": "합성 질문입니다.",
+      "reason": "목록·원문 링크·복귀 검증을 위한 합성 항목입니다.",
+      "score": 95,
+      "articleCount": 1,
+      "publisherCount": 1,
+      "independentSignals": 1,
+      "growth": {
+        "status": "no-baseline",
+        "recent": 0,
+        "previous": 0
+      },
+      "searchSignals": [],
+      "publishedAt": "2026-01-01T00:00:00Z",
+      "articles": [
+        {
+          "title": "합성 기사 6",
+          "url": "https://www.yna.co.kr/view/SYNTHETIC00000005",
+          "publisher": "연합뉴스",
+          "publishedAt": "2026-01-01T00:00:00Z"
+        }
+      ],
+      "evidence": [],
+      "reviewStatus": "unreviewed"
+    },
+    {
+      "id": "news_0000000000000006",
+      "title": "합성 뉴스 7 · 테스트 전용",
+      "question": "합성 질문입니다.",
+      "reason": "목록·원문 링크·복귀 검증을 위한 합성 항목입니다.",
+      "score": 94,
+      "articleCount": 1,
+      "publisherCount": 1,
+      "independentSignals": 1,
+      "growth": {
+        "status": "no-baseline",
+        "recent": 0,
+        "previous": 0
+      },
+      "searchSignals": [],
+      "publishedAt": "2026-01-01T00:00:00Z",
+      "articles": [
+        {
+          "title": "합성 기사 7",
+          "url": "https://www.yna.co.kr/view/SYNTHETIC00000006",
+          "publisher": "연합뉴스",
+          "publishedAt": "2026-01-01T00:00:00Z"
+        }
+      ],
+      "evidence": [],
+      "reviewStatus": "unreviewed"
+    },
+    {
+      "id": "news_0000000000000007",
+      "title": "합성 뉴스 8 · 테스트 전용",
+      "question": "합성 질문입니다.",
+      "reason": "목록·원문 링크·복귀 검증을 위한 합성 항목입니다.",
+      "score": 93,
+      "articleCount": 1,
+      "publisherCount": 1,
+      "independentSignals": 1,
+      "growth": {
+        "status": "no-baseline",
+        "recent": 0,
+        "previous": 0
+      },
+      "searchSignals": [],
+      "publishedAt": "2026-01-01T00:00:00Z",
+      "articles": [
+        {
+          "title": "합성 기사 8",
+          "url": "https://www.yna.co.kr/view/SYNTHETIC00000007",
+          "publisher": "연합뉴스",
+          "publishedAt": "2026-01-01T00:00:00Z"
+        }
+      ],
+      "evidence": [],
+      "reviewStatus": "unreviewed"
+    },
+    {
+      "id": "news_0000000000000008",
+      "title": "합성 뉴스 9 · 테스트 전용",
+      "question": "합성 질문입니다.",
+      "reason": "목록·원문 링크·복귀 검증을 위한 합성 항목입니다.",
+      "score": 92,
+      "articleCount": 1,
+      "publisherCount": 1,
+      "independentSignals": 1,
+      "growth": {
+        "status": "no-baseline",
+        "recent": 0,
+        "previous": 0
+      },
+      "searchSignals": [],
+      "publishedAt": "2026-01-01T00:00:00Z",
+      "articles": [
+        {
+          "title": "합성 기사 9",
+          "url": "https://www.yna.co.kr/view/SYNTHETIC00000008",
+          "publisher": "연합뉴스",
+          "publishedAt": "2026-01-01T00:00:00Z"
+        }
+      ],
+      "evidence": [],
+      "reviewStatus": "unreviewed"
+    },
+    {
+      "id": "news_0000000000000009",
+      "title": "합성 뉴스 10 · 테스트 전용",
+      "question": "합성 질문입니다.",
+      "reason": "목록·원문 링크·복귀 검증을 위한 합성 항목입니다.",
+      "score": 91,
+      "articleCount": 1,
+      "publisherCount": 1,
+      "independentSignals": 1,
+      "growth": {
+        "status": "no-baseline",
+        "recent": 0,
+        "previous": 0
+      },
+      "searchSignals": [],
+      "publishedAt": "2026-01-01T00:00:00Z",
+      "articles": [
+        {
+          "title": "합성 기사 10",
+          "url": "https://www.yna.co.kr/view/SYNTHETIC00000009",
+          "publisher": "연합뉴스",
+          "publishedAt": "2026-01-01T00:00:00Z"
+        }
+      ],
+      "evidence": [],
+      "reviewStatus": "unreviewed"
+    }
+  ],
+  "sources": [],
+  "shortfall": 0,
+  "notice": "합성 브라우저 테스트 자료입니다. 실제 보도나 순위가 아닙니다."
+}

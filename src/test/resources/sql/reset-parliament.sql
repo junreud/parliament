@@ -1,5 +1,7 @@
 DROP VIEW IF EXISTS `parliament_current_legislator`;
 DROP VIEW IF EXISTS `parliament_former_legislator`;
+DROP TABLE IF EXISTS `parliament_processing_outbox`;
+DROP TABLE IF EXISTS `parliament_source_record_version`;
 DROP TABLE IF EXISTS `parliament_ingestion_source_run`;
 DROP TABLE IF EXISTS `parliament_ingestion_run`;
 DROP TABLE IF EXISTS `parliament_ingestion_checkpoint`;

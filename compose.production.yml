@@ -1,0 +1,70 @@
+# Image digests are filled by scripts/build_release.py; never deploy mutable tags.
+services:
+  mysql:
+    image: ${MYSQL_IMAGE:?immutable digest required}
+    environment:
+      MYSQL_DATABASE: parliament
+      MYSQL_USER: parliament
+      MYSQL_PASSWORD: ${PARLIAMENT_DB_PASSWORD:?required}
+      MYSQL_ROOT_PASSWORD: ${PARLIAMENT_DB_ROOT_PASSWORD:?required}
+    ports: ["127.0.0.1:3306:3306"]
+    volumes:
+      - parliament_mysql:/var/lib/mysql
+      - ./src/main/resources/sql/schema-parliament.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
+      - ./src/main/resources/sql/schema-tracking.sql:/docker-entrypoint-initdb.d/002-tracking.sql:ro
+      - ./src/main/resources/sql/schema-metrics.sql:/docker-entrypoint-initdb.d/003-metrics.sql:ro
+      - ./src/main/resources/sql/schema-knowledge.sql:/docker-entrypoint-initdb.d/004-knowledge.sql:ro
+      - ./src/main/resources/sql/schema-beta.sql:/docker-entrypoint-initdb.d/005-beta.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 3s
+      retries: 30
+    mem_limit: 1024m
+    restart: unless-stopped
+    logging: &logging
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+  backend:
+    image: ${BACKEND_IMAGE:?immutable digest required}
+    env_file: .env
+    environment:
+      PARLIAMENT_DB_URL: r2dbc:mysql://mysql:3306/parliament
+      PARLIAMENT_DB_USER: parliament
+      TRACKING_ENABLED: "true"
+      KNOWLEDGE_ENABLED: ${KNOWLEDGE_ENABLED:-false}
+    ports: ["127.0.0.1:8080:8080"]
+    depends_on: {mysql: {condition: service_healthy}}
+    mem_limit: 1024m
+    restart: unless-stopped
+    logging: *logging
+  web:
+    image: ${WEB_IMAGE:?immutable digest required}
+    environment:
+      BACKEND_URL: http://backend:8080
+      PUBLIC_BASE_URL: ${TRACKING_PUBLIC_BASE_URL:?fixed HTTPS origin required}
+      NODE_OPTIONS: --max-old-space-size=384
+    ports: ["3000:3000"]
+    depends_on: [backend]
+    mem_limit: 512m
+    restart: unless-stopped
+    logging: *logging
+  worker:
+    image: ${WORKER_IMAGE:?immutable digest required}
+    profiles: [jobs]
+    env_file: .env
+    environment:
+      PARLIAMENT_DB_HOST: 127.0.0.1
+      PARLIAMENT_DB_PORT: "3306"
+      PARLIAMENT_DB_USER: parliament
+      PARLIAMENT_BACKEND_URL: http://127.0.0.1:8080
+      AWS_REGION: ap-northeast-2
+      PARLIAMENT_REVIEW_LEDGER: /data/review.sqlite3
+    # A single scheduled worker accesses loopback MySQL; remote DB requires verified TLS.
+    network_mode: host
+    volumes: ["./.local/worker:/data"]
+    mem_limit: 512m
+    cpus: 0.5
+    logging: *logging
+volumes:
+  parliament_mysql:

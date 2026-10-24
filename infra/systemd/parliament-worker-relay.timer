@@ -1,0 +1,8 @@
+[Unit]
+Description=Relay committed original versions to SQS
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=5min
+Unit=parliament-worker@relay.service
+[Install]
+WantedBy=timers.target

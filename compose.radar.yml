@@ -1,0 +1,19 @@
+# Optional production overlay. Build immutable backend/worker images before use.
+# docker compose -f compose.production.yml -f compose.radar.yml up -d backend radar
+services:
+  backend:
+    environment:
+      RADAR_FEED_PATH: /radar/public.json
+    volumes:
+      - ./.local/radar:/radar:ro
+  radar:
+    image: ${WORKER_IMAGE:?immutable digest required}
+    command: ["radar", "watch", "--state", "/data/radar", "--public-output", "/data/radar/public.json", "--interval-seconds", "1800", "--until", "${RADAR_UNTIL:?aware ISO timestamp within 8 days required}"]
+    volumes:
+      - ./.local/radar:/data/radar
+    mem_limit: 256m
+    cpus: 0.5
+    restart: "no"
+    logging:
+      driver: json-file
+      options: {max-size: "5m", max-file: "2"}

@@ -1,0 +1,10 @@
+[Unit]
+Description=Bounded Parliament %i worker job
+After=docker.service
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/parliament
+EnvironmentFile=/opt/parliament/.env
+UMask=0077
+TimeoutStartSec=10min
+ExecStart=/usr/bin/flock --nonblock /run/parliament-worker.lock /bin/sh scripts/run_worker.sh %i

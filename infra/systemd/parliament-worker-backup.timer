@@ -1,0 +1,8 @@
+[Unit]
+Description=Daily external worker ledger backup
+[Timer]
+OnCalendar=*-*-* 18:20:00 UTC
+Persistent=true
+Unit=parliament-worker-backup.service
+[Install]
+WantedBy=timers.target

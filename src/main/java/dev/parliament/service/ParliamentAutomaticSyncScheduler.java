@@ -36,13 +36,37 @@ public class ParliamentAutomaticSyncScheduler {
             cron = "${parliament.ingestion.incremental-cron:0 0 4 * * *}",
             zone = "${parliament.ingestion.incremental-zone:Asia/Seoul}")
     public void synchronize() {
+        run(properties.getIncrementalSourceKeys(), false);
+    }
+
+    @Scheduled(cron = "${parliament.ingestion.daily-cron:0 0 4 * * *}",
+            zone = "${parliament.ingestion.incremental-zone:Asia/Seoul}")
+    public void synchronizeDaily() {
+        run(properties.getDailySourceKeys(), false);
+    }
+
+    @Scheduled(cron = "${parliament.ingestion.reconciliation-cron:0 0 3 * * SUN}",
+            zone = "${parliament.ingestion.incremental-zone:Asia/Seoul}")
+    public void reconcileWeekly() {
+        if (properties.isReconciliationEnabled()) {
+            run(java.util.stream.Stream.concat(properties.getIncrementalSourceKeys().stream(),
+                    properties.getDailySourceKeys().stream()).distinct().toList(), true);
+        }
+    }
+
+    private void run(List<String> sources, boolean reconciliation) {
+        if (sources.isEmpty()) {
+            LOG.warn("automatic sync skipped: explicitly verified source keys are required");
+            return;
+        }
         if (!jobGuard.tryAcquire()) {
             return;
         }
         ParliamentIngestionRequest request = new ParliamentIngestionRequest(
-                List.of(), properties.getIncrementalPageSize(),
+                sources, properties.getIncrementalPageSize(),
                 properties.getIncrementalMaxPages(), true);
-        ingestionService.synchronizeAutomatically(request)
+        (reconciliation ? ingestionService.reconcileAutomatically(request)
+                : ingestionService.synchronizeAutomatically(request))
                 .flatMap(ignored -> properties.isSocialVerificationEnabled()
                         ? socialVerificationService.verifyDue(
                                 Duration.ofDays(properties.getSocialVerificationMaxAgeDays()),

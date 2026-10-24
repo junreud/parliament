@@ -1,0 +1,39 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "parliament-worker"
+version = "0.1.0"
+description = "Bounded official-source ingestion and reviewed provenance processing"
+requires-python = ">=3.11"
+dependencies = [
+    "beautifulsoup4>=4.13,<5",
+    "httpx>=0.28,<1",
+    "truststore>=0.10,<1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10", "black>=25,<27", "isort>=6,<10"]
+aws = ["boto3>=1.35,<2", "pymysql>=1.1,<2"]
+pdf = ["pypdf>=5,<7"]
+
+[project.scripts]
+parliament-worker = "parliament_worker.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+
+[tool.isort]
+profile = "black"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/parliament_worker"]
+
+[tool.uv]
+cache-keys = [{ file = "pyproject.toml" }, { file = "src/**/*.py" }]

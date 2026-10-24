@@ -1,0 +1,9 @@
+[Unit]
+Description=Queue Parliament %i digest
+After=docker.service
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/parliament
+EnvironmentFile=/opt/parliament/.env
+UMask=0077
+ExecStart=/usr/bin/python3.11 scripts/digests.py --frequency %i

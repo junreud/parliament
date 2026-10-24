@@ -1,0 +1,13 @@
+asset_id,format,scheduled_at,status,review_status,app_url,published_url,published_at
+B01,carousel,2026-10-19T19:30:00+09:00,draft,pending,,,
+B02,carousel,2026-10-21T19:30:00+09:00,draft,pending,,,
+B03,carousel,2026-10-23T19:30:00+09:00,draft,pending,,,
+B04,carousel,2026-10-26T19:30:00+09:00,draft,pending,,,
+B05,carousel,2026-10-28T19:30:00+09:00,draft,pending,,,
+B06,carousel,2026-10-30T19:30:00+09:00,draft,pending,,,
+B07,carousel,2026-11-02T19:30:00+09:00,draft,pending,,,
+B08,carousel,2026-11-04T19:30:00+09:00,draft,pending,,,
+B09,carousel,2026-11-06T19:30:00+09:00,draft,pending,,,
+B10,carousel,2026-11-09T19:30:00+09:00,draft,pending,,,
+B11,reel,2026-11-11T19:30:00+09:00,draft,pending,,,
+B12,reel,2026-11-13T19:30:00+09:00,draft,pending,,,

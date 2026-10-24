@@ -1,0 +1,11 @@
+item,quantity,unit,unit_price_usd,monthly_usd,basis_url,note
+EC2,730,hour,,,https://aws.amazon.com/ec2/pricing/on-demand/,Seoul ARM instance
+EBS,40,GB-month,,,https://aws.amazon.com/ebs/pricing/,Encrypted gp3
+ALB,730,hour,,,https://aws.amazon.com/elasticloadbalancing/pricing/,Add actual LCU use
+NAT,730,hour,,,https://aws.amazon.com/vpc/pricing/,Add processed GB
+Public IPv4,,,address-hour,,https://aws.amazon.com/vpc/pricing/,ALB and NAT addresses
+S3,,,GB-month,,https://aws.amazon.com/s3/pricing/,Raw versions and two backups
+SQS,,,requests,,https://aws.amazon.com/sqs/pricing/,Include retries
+SES,,,messages,,https://aws.amazon.com/ses/pricing/,Only explicitly enabled delivery
+AI,,,KRW-token-budget,,,Shared monthly reservation ledger
+VAT and exchange buffer,,,,,,Operator scenario required
