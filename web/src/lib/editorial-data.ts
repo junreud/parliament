@@ -1,6 +1,7 @@
 import "server-only";
 import data from "@/data/editorial-issues.json";
 import { isReviewedEditorial, type EditorialIssue } from "./editorial";
+import { REPRESENTATIVE_ISSUE_ID } from "./issue-reading";
 export const editorialIssues = data.issues as EditorialIssue[];
 export function editorialPreviewEnabled(): boolean {
   if (process.env.EDITORIAL_PREVIEW_ENABLED !== "true" || !process.env.PUBLIC_BASE_URL) return false;
@@ -11,7 +12,8 @@ export function editorialPreviewEnabled(): boolean {
   } catch { return false; }
 }
 export function canReadEditorial(issue: EditorialIssue): boolean {
-  return isReviewedEditorial(issue) || editorialPreviewEnabled();
+  // This issue is served only after the public reading rechecks its current pins/state.
+  return issue.id !== REPRESENTATIVE_ISSUE_ID && (isReviewedEditorial(issue) || editorialPreviewEnabled());
 }
 export function getVisibleEditorialIssues(): EditorialIssue[] {
   return editorialIssues.filter(canReadEditorial);
