@@ -284,6 +284,19 @@
   background: #1e4b8e;
 }
 
+/* Leave room for taller system font metrics without shrinking touch targets. */
+.home-screen .home-lead-list .record-card {
+  padding-block: 9px;
+}
+
+.home-screen .home-lead-list .record-bottom {
+  margin-top: 4px;
+}
+
+.home-screen .home-lead-list .record-open {
+  margin-top: 6px;
+}
+
 .home-screen .home-news {
   margin: 15px 0 22px;
   border: 1px solid #e1e8f0;
