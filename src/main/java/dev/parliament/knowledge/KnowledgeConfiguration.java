@@ -13,8 +13,9 @@ import org.springframework.transaction.reactive.TransactionalOperator;
 @ConditionalOnProperty(prefix="knowledge",name="enabled",havingValue="true")
 public class KnowledgeConfiguration {
     @Bean IssueReadingCatalog issueReadingCatalog(ObjectMapper mapper,
-            @org.springframework.beans.factory.annotation.Value("${knowledge.editorial-source:file:web/src/data/editorial-issues.json}") org.springframework.core.io.Resource source) {
-        return new IssueReadingCatalog(mapper, new org.springframework.core.io.ClassPathResource("knowledge/issue-readings.json"), source);
+            @org.springframework.beans.factory.annotation.Value("${knowledge.editorial-source:file:web/src/data/editorial-issues.json}") org.springframework.core.io.Resource source,
+            @org.springframework.beans.factory.annotation.Value("${knowledge.reading-catalog:classpath:knowledge/issue-readings.json}") org.springframework.core.io.Resource catalog) {
+        return new IssueReadingCatalog(mapper, catalog, source);
     }
     @Bean IssueReadingReads issueReadingReads(IssueReadingCatalog catalog, KnowledgeReads reads, ConnectionFactory factory) {
         var definition = new org.springframework.transaction.support.DefaultTransactionDefinition();

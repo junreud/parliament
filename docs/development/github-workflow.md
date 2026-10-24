@@ -16,6 +16,8 @@ uv sync --locked --all-extras
 
 초기화는 `*.example.json`에서 없는 입력만 생성합니다. 웹 예시는 사람 검토 전 합성 원고, 뉴스 예시는 빈 수집 상태입니다. 실제 내용을 공개하려면 원고·신원·역할·근거·이용 조건과 정확한 공개 버전을 별도로 확인해야 합니다. CI/브라우저 검사는 운영 입력 대신 고정 합성 fixture를 사용합니다.
 
+백엔드의 `knowledge.reading-catalog` 설정은 기본 `classpath:knowledge/issue-readings.json` 대신 로컬 공개 묶음을 지정할 수 있습니다. 예를 들어 `file:.local/readings/issue-readings.json`을 사용합니다. 요청마다 같은 파일의 현재 상태를 다시 읽고, 원격 URL은 거부합니다. 파일 지정만으로 원고·근거·공개 승인이 생기는 것은 아닙니다.
+
 ## 변경 절차
 
 작업별 Issue에 사용자 행동·담당·선행 조건·완료 기준을 기록하고 해당 브랜치와 PR을 연결합니다. 변경은 `feat/`, `fix/`, `hotfix/`, `chore/` 브랜치에서 수행합니다. 커밋은 Conventional Commit 형식을 사용합니다.
